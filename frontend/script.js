@@ -1,15 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     // CONFIG
     const API_URL = 'http://127.0.0.1:5001';
-    const STUDY_SESSION_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+    const STUDY_SESSION_DURATION = 25 * 60 * 1000;
 
     // DOM ELEMENTS
     const setupArea = document.getElementById('setup-area');
     const studyArea = document.getElementById('study-area');
     const generateBtn = document.getElementById('generate-btn');
-    const topicInput = document.getElementById('topic-input');
     const statusMessage = document.getElementById('status-message');
     
+    const textInput = document.getElementById('text-input');
+    const fileUpload = document.getElementById('file-upload');
+    const fileNameDisplay = document.getElementById('file-name-display');
+
     const cardContainer = document.getElementById('card-container');
     const questionText = document.getElementById('question-text');
     const answerText = document.getElementById('answer-text');
@@ -29,11 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let breakTimer = null;
 
     // FUNCTIONS
-
-    const setStatus = (message, isLoading = false) => {
-        statusMessage.textContent = message;
-    };
-
+    const setStatus = (message) => { statusMessage.textContent = message; };
     const startBreakTimer = () => {
         clearTimeout(breakTimer);
         breakTimer = setTimeout(() => {
@@ -43,12 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchDueCard = async () => {
-        setStatus('Loading next card...', true);
+        setStatus('Loading next card...');
         try {
             const response = await fetch(`${API_URL}/get-due-card`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-
             if (data.message) {
                 currentCard = null;
                 setStatus(data.message);
@@ -74,12 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showAnswerBtn.classList.remove('hidden');
         performanceBtns.classList.add('hidden');
         mcqOptionsContainer.innerHTML = '';
-        
         questionText.textContent = card.question;
-
         if (card.type === 'mcq') {
             showAnswerBtn.classList.add('hidden');
-            
             card.options.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'mcq-option';
@@ -100,30 +95,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('correct');
             }
         });
-
-        if (selectedOption !== correctOption) {
-            buttonEl.classList.add('incorrect');
-        }
+        if (selectedOption !== correctOption) buttonEl.classList.add('incorrect');
         performanceBtns.classList.remove('hidden');
     };
 
     // EVENT LISTENERS
+    fileUpload.addEventListener('change', () => {
+        if (fileUpload.files.length > 0) {
+            fileNameDisplay.textContent = fileUpload.files[0].name;
+            textInput.value = '';
+            textInput.disabled = true;
+            textInput.style.backgroundColor = '#f8f9fa';
+        }
+    });
 
     generateBtn.addEventListener('click', async () => {
-        const topic = topicInput.value.trim();
-        if (!topic) {
-            setStatus('Please enter a topic.');
+        const textContent = textInput.value.trim();
+        const file = fileUpload.files[0];
+
+        if (!textContent && !file) {
+            setStatus('Please paste text or choose a file.');
             return;
         }
 
-        setStatus('Generating new cards with Gemini... this may take a moment.', true);
+        setStatus('Processing document and generating cards... this may take a moment.');
         setupArea.classList.add('hidden');
+
+        const formData = new FormData();
+        if (textContent) {
+            formData.append('text_content', textContent);
+        } else if (file) {
+            formData.append('file', file);
+        }
 
         try {
             const response = await fetch(`${API_URL}/generate-cards`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: topic, count: 10 })
+                body: formData
             });
             const data = await response.json();
 
@@ -131,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setStatus(data.message);
                 fetchDueCard();
             } else {
-                setStatus(`Error: ${data.error}`);
+                setStatus(`Error: ${data.error || 'An unknown error occurred.'}`);
                 setupArea.classList.remove('hidden');
             }
         } catch (error) {
@@ -151,11 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.perf-btn')) {
             const quality = e.target.dataset.quality;
             if (!currentCard) return;
-
-            // Immediately fetch the next card for a snappy UI
             fetchDueCard(); 
-            
-            // Update the performance of the card we just answered in the background
             await fetch(`${API_URL}/update-card-performance`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -5,12 +5,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 import google.generativeai as genai
+import fitz # PyMuPDF
 
 # Load environment variables from .env file
 load_dotenv()
 
 # FLASK APP SETUP
 app = Flask(__name__)
+# Add a configuration for max content length (e.g., 16MB)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 CORS(app) 
 
 # GEMINI API SETUP
@@ -41,34 +44,56 @@ def save_data(data):
         json.dump(data, f, indent=4)
 
 # API ROUTES
-
 @app.route('/generate-cards', methods=['POST'])
 def generate_cards():
     if not model:
         return jsonify({"error": "Gemini API not configured"}), 500
+    
+    context_text = ""
+    # When sending files, data comes in request.form, not request.get_json()
+    num_cards = int(request.form.get('count', 10))
 
-    data = request.get_json()
-    topic = data.get('topic')
-    num_cards = data.get('count', 10)
+    # Check for pasted text first
+    if 'text_content' in request.form and request.form['text_content']:
+        print("Received text content.")
+        context_text = request.form['text_content']
+    # If no text, check for a file in the request
+    elif 'file' in request.files and request.files['file'].filename != '':
+        print("Received file.")
+        file = request.files['file']
+        try:
+            # Use fitz to open the file from the uploaded file's byte stream
+            doc = fitz.open(stream=file.read(), filetype="pdf")
+            for page in doc:
+                context_text += page.get_text()
+            doc.close()
+        except Exception as e:
+            print(f"Error processing PDF: {e}")
+            return jsonify({"error": "Could not read the PDF file. It might be corrupt or an unsupported format."}), 400
+    # If neither is provided, it's an error
+    else:
+        return jsonify({"error": "No content provided. Please paste text or upload a PDF."}), 400
 
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
+    if not context_text.strip():
+        return jsonify({"error": "The provided source was empty."}), 400
 
     try:
+        # A new prompt that tells the model to use the provided text
         prompt = f"""
-        Please act as a study assistant. Generate {num_cards} study items about the topic: "{topic}".
-        The items should be a mix of simple flashcards and multiple-choice questions.
+        Please act as a study assistant. Carefully read the following text and generate {num_cards} high-quality study items based *only* on the information provided.
+        The items should be a mix of simple flashcards (question/answer) and multiple-choice questions (question, 4 options, correct answer).
+        Focus on the most important concepts, definitions, and relationships in the text.
         Provide the output as a single, minified JSON array of objects. Do not include any text before or after the JSON array.
         Each object must have a "type" field ('flashcard' or 'mcq').
+
         For 'flashcard' type, the object should have "question" and "answer" fields.
         For 'mcq' type, the object should have a "question" field, an "options" field (an array of 4 strings), and a "correctAnswer" field (the string of the correct option).
-        Example:
-        [
-          {{"type": "flashcard", "question": "What is the powerhouse of the cell?", "answer": "The Mitochondria"}},
-          {{"type": "mcq", "question": "Which planet is known as the Red Planet?", "options": ["Earth", "Mars", "Jupiter", "Venus"], "correctAnswer": "Mars"}}
-        ]
-        """
-        print(f"Sending prompt to Gemini for topic: {topic}")
+        
+        TEXT TO ANALYZE:
+        {context_text[:12000]}
+        """ # Slicing context to avoid exceeding API token limits
+
+        print(f"Sending prompt to Gemini based on provided content.")
         response = model.generate_content(prompt)
         
         cleaned_response = response.text.strip().replace('```json', '').replace('```', '')

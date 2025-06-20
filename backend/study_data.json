@@ -1,0 +1,128 @@
+{
+    "cards": [
+        {
+            "type": "flashcard",
+            "question": "How do you prove S \u2286 T using 'element chasing'?",
+            "answer": "Let x be an arbitrary element of S and use any relevant assumptions and definitions to prove that x must also be an element of T.",
+            "id": 1,
+            "next_review_date": "2025-06-21T22:23:51.464212",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 1
+        },
+        {
+            "type": "flashcard",
+            "question": "How do you prove S = T using 'element chasing'?",
+            "answer": "Prove both S \u2286 T and T \u2286 S using element chasing.",
+            "id": 2,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "mcq",
+            "question": "When proving A \u00d7 (B \u2229 C) \u2286 (A \u00d7 B) \u2229 (A \u00d7 C) by element chasing, what type of arbitrary element is chosen?",
+            "options": [
+                "An arbitrary element x",
+                "An arbitrary ordered pair (x,y)",
+                "An arbitrary set A",
+                "An arbitrary tuple (x,y,z)"
+            ],
+            "correctAnswer": "An arbitrary ordered pair (x,y)",
+            "id": 3,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "flashcard",
+            "question": "According to the text, what logical law is applied when proving De Morgan's law for sets?",
+            "answer": "De Morgan\u2019s laws from propositional logic.",
+            "id": 4,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "mcq",
+            "question": "Which of the following assumptions was *not* given in the problem statement for proving A \u2286 B\u2212D?",
+            "options": [
+                "A \u2286 B",
+                "D \u2286 C",
+                "A \u2229 C = \u2205",
+                "B \u2229 D = \u2205"
+            ],
+            "correctAnswer": "B \u2229 D = \u2205",
+            "id": 5,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "flashcard",
+            "question": "Based on the text, what is the definition of the set intersection A \u2229 B?",
+            "answer": "{y : y \u2208 A \u2227 y \u2208 B}",
+            "id": 6,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "flashcard",
+            "question": "Based on the text, how is the complement of a set A \u2229 B defined (A \u2229 B)?",
+            "answer": "{x : x /\u2208 A \u2229 B}",
+            "id": 7,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "mcq",
+            "question": "In the proof that A \u2229 C \u2286 (A \u2212 B) \u2229 (C \u2212 B), given x \u2208 A \u2229 C and (A \u2229 B) \u2229 C = \u2205, what is the conclusion about x's relationship with B?",
+            "options": [
+                "x \u2208 B",
+                "x /\u2208 B",
+                "x may or may not be in B",
+                "x \u2208 A \u2229 B"
+            ],
+            "correctAnswer": "x /\u2208 B",
+            "id": 8,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "flashcard",
+            "question": "State one of De Morgan\u2019s laws for sets as proven in the text.",
+            "answer": "A \u2229 B = A \u222a B",
+            "id": 9,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        },
+        {
+            "type": "mcq",
+            "question": "When proving S = T by 'element chasing,' what is the general approach?",
+            "options": [
+                "Prove S \u2286 T only.",
+                "Prove T \u2286 S only.",
+                "Prove S \u2286 T and T \u2286 S.",
+                "Assume S = T and derive a contradiction."
+            ],
+            "correctAnswer": "Prove S \u2286 T and T \u2286 S.",
+            "id": 10,
+            "next_review_date": "2025-06-20T22:23:19.326953",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        }
+    ]
+}

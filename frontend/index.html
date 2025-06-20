@@ -12,8 +12,14 @@
         
         <!-- Setup Area -->
         <div id="setup-area">
-            <p>What topic would you like to study today?</p>
-            <input type="text" id="topic-input" placeholder="e.g., The French Revolution">
+            <p>Paste your notes, or upload a document.</p>
+            <div class="input-group">
+                <textarea id="text-input" placeholder="Paste your course notes, lecture transcript, or any text here..."></textarea>
+                <div class="separator">OR</div>
+                <input type="file" id="file-upload" accept=".pdf,.txt">
+                <label for="file-upload" class="file-label">Choose a PDF or TXT File</label>
+                <span id="file-name-display"></span>
+            </div>
             <button id="generate-btn">Generate Study Cards</button>
         </div>
 
@@ -30,7 +36,6 @@
                     </div>
                 </div>
             </div>
-
             <div id="study-controls">
                 <button id="show-answer-btn">Show Answer</button>
                 <div id="performance-btns" class="hidden">
