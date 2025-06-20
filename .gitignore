@@ -1,10 +1,10 @@
 # Node & Next
-node_modules/
-.next/
+frontend/node_modules/
+frontend/.next/
 
 # Backend deps
 backend/node_modules/
 
-# Environment files
+# Environment & build artifacts
 .env
 .env.local
