@@ -1,0 +1,113 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+h1 {
+    color: #007aff;
+    margin-bottom: 2rem;
+}
+
+.hidden { display: none !important; }
+
+/* Setup Area */
+#topic-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #007aff;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+button:hover { background-color: #0056b3; }
+
+/* Card Area */
+#card-container {
+    min-height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.card {
+    background-color: #eef7ff;
+    border: 1px solid #cce4ff;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 100%;
+}
+#question-text {
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+#answer-text {
+    font-size: 1.2rem;
+    color: #0056b3;
+    font-weight: 600;
+}
+.card-back {
+    color: #0056b3;
+}
+.mcq-option {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+}
+.mcq-option:hover { background-color: #f0f2f5; }
+.mcq-option.correct { background-color: #d4edda; border-color: #c3e6cb; }
+.mcq-option.incorrect { background-color: #f8d7da; border-color: #f5c6cb; }
+
+/* Controls */
+#study-controls button { margin: 0 5px; }
+.perf-btn.hard { background-color: #dc3545; }
+.perf-btn.hard:hover { background-color: #c82333; }
+.perf-btn.medium { background-color: #ffc107; color: #212529; }
+.perf-btn.medium:hover { background-color: #e0a800; }
+.perf-btn.easy { background-color: #28a745; }
+.perf-btn.easy:hover { background-color: #218838; }
+
+/* Status & Break */
+#status-area { min-height: 24px; margin-top: 1rem; color: #6c757d; }
+#break-reminder {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}

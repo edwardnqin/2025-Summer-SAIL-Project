@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcademiSpark - Study Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AcademiSpark</h1>
+        
+        <!-- Setup Area -->
+        <div id="setup-area">
+            <p>What topic would you like to study today?</p>
+            <input type="text" id="topic-input" placeholder="e.g., The French Revolution">
+            <button id="generate-btn">Generate Study Cards</button>
+        </div>
+
+        <!-- Study Area -->
+        <div id="study-area" class="hidden">
+            <div id="card-container">
+                <div class="card">
+                    <div class="card-front">
+                        <p id="question-text"></p>
+                        <div id="mcq-options"></div>
+                    </div>
+                    <div class="card-back hidden">
+                        <p id="answer-text"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="study-controls">
+                <button id="show-answer-btn">Show Answer</button>
+                <div id="performance-btns" class="hidden">
+                    <button class="perf-btn hard" data-quality="1">Hard</button>
+                    <button class="perf-btn medium" data-quality="2">Medium</button>
+                    <button class="perf-btn easy" data-quality="3">Easy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status/Message Area -->
+        <div id="status-area">
+            <p id="status-message"></p>
+        </div>
+
+        <!-- Break Reminder -->
+        <div id="break-reminder" class="hidden">
+            <h2>Time for a break!</h2>
+            <p>Step away for 5 minutes to refresh your mind.</p>
+            <button id="resume-btn">Resume Studying</button>
+        </div>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
