@@ -1,0 +1,10 @@
+# Node & Next
+node_modules/
+.next/
+
+# Backend deps
+backend/node_modules/
+
+# Environment files
+.env
+.env.local
