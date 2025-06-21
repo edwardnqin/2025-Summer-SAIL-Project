@@ -1,6 +1,6 @@
-# AcademiSpark
+# Wisebud
 
-AcademiSpark is a smart study assistant that leverages the Google Gemini API to automatically generate flashcards and multiple-choice questions from your course materials. It uses a spaced repetition system (SRS) to schedule reviews, helping you learn more efficiently and retain information longer.
+Wisebud is a smart study assistant that leverages the Google Gemini API to automatically generate flashcards and multiple-choice questions from your course materials. It uses a spaced repetition system (SRS) to schedule reviews, helping you learn more efficiently and retain information longer.
 
 ## Core Features
 
