@@ -1,3 +1,7 @@
+"""Legacy FastAPI prototype – do not run in prod."""
+"""Legacy FastAPI prototype – do not run in prod."""
+"""Legacy FastAPI prototype – do not run in prod."""
+"""Legacy FastAPI prototype – do not run in prod."""
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -29,3 +33,22 @@ async def ask(userInput: str = Form(...), fileUpload: UploadFile = ...):
         ]
     )
     return {"answer": response.choices[0].message.content}
+
+
+def legacy_app():
+    pass
+
+if __name__ == "__main__":
+    import sys; sys.exit("Run backend/app.py instead")
+
+def legacy_app():
+    pass  # FastAPI app was here
+
+if __name__ == "__main__":
+    import sys; sys.exit("Run backend/app.py instead")
+
+def legacy_app():
+    pass  # placeholder to keep linters quiet
+
+if __name__ == "__main__":
+    import sys; sys.exit("Run backend/app.py instead")

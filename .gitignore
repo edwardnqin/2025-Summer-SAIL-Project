@@ -8,3 +8,4 @@ backend/node_modules/
 # Environment & build artifacts
 .env
 .env.local
+backend/study_data.json
