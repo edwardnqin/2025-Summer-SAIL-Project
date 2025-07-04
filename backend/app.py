@@ -2,6 +2,7 @@ import os
 import json
 import datetime
 import pathlib
+import re
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -145,18 +146,16 @@ def generate_cards():
 
     db = _load()
     db_files = db.get("files", [])
-    # only keep files whose name is in the selected list
     files = [f for f in db_files if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
 
-    # merge just the selected texts
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
         "Extract flashcards from the following material. "
         "Return a JSON array of objects with 'question' and 'answer' fields.\n\n"
-        f"{merged}"
+        + merged
     )
 
     try:
@@ -164,20 +163,18 @@ def generate_cards():
             model=MODEL,
             messages=[
                 {"role": "system", "content": "You generate flashcards in JSON."},
-                {"role": "user", "content": prompt}
+                {"role": "user",   "content": prompt}
             ],
             temperature=0.3
         )
         raw_text = response.choices[0].message.content.strip()
 
-        # strip ```json fences if present
-        if raw_text.startswith("```json"):
-            raw_text = raw_text.removeprefix("```json").removesuffix("```").strip()
-        elif raw_text.startswith("```"):
-            raw_text = raw_text.removeprefix("```").removesuffix("```").strip()
+        # --- Robust JSON extraction ---
+        match = re.search(r'(\[.*\])', raw_text, re.S)
+        clean = match.group(1) if match else raw_text
+        cards = json.loads(clean)
 
-        cards = json.loads(raw_text)
-
+        # --- Append cards as before ---
         now = datetime.datetime.utcnow().isoformat()
         next_id = max([0] + [c.get("id", 0) for c in db.get("cards", [])]) + 1
         for c in cards:
@@ -234,6 +231,38 @@ def update_performance():
         datetime.timedelta(days=card["interval"])).isoformat()
     _save(db)
     return jsonify(card)
+
+# ─── 9) GENERATE QUIZ ───────────────────────────────────────────────────
+@app.post("/generate-quiz")
+def generate_quiz():
+    data = request.get_json(force=True)
+    selected_files = data.get("filenames", [])
+    if not selected_files:
+        return jsonify(error="No files selected"), 400
+    db_files = _load().get("files", [])
+    files = [f for f in db_files if f["name"] in selected_files]
+    if not files:
+        return jsonify(error="No matching files found"), 404
+    merged = "\n\n".join(f["text"] for f in files)[:950_000]
+    prompt = (
+        "You are a quiz generator for a midterm exam. Based on the following material, "
+        "create multiple-choice questions covering key concepts. "
+        "Each question must have exactly four distinct options labeled A, B, C, and D. "
+        "Return a JSON array of objects, each with 'question', 'options', and 'correctAnswer'.\n\n" + merged
+    )
+    response = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": "You generate multiple-choice quizzes in JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+    raw = response.choices[0].message.content.strip()
+    match = re.search(r"(\[.*\])", raw, re.S)
+    clean = match.group(1) if match else raw
+    questions = json.loads(clean)
+    return jsonify(questions=questions)
 
 # ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
