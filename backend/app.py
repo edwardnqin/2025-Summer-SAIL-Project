@@ -81,11 +81,17 @@ def delete_file():
     return jsonify(message=f"Deleted {filename}")
 
 # ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
-@app.get("/summarize")
+@app.post("/summarize")
 def summarize():
-    files = _load()["files"]
+    data = request.get_json(force=True)
+    selected_files = data.get("filenames", [])
+    if not selected_files:
+        return jsonify(error="No files selected"), 400
+
+    db_files = _load().get("files", [])
+    files = [f for f in db_files if f["name"] in selected_files]
     if not files:
-        return jsonify(error="No files"), 400
+        return jsonify(error="No matching files found"), 404
 
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = "Summarize the following material:\n\n" + merged
