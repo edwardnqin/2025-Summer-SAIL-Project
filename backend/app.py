@@ -138,9 +138,20 @@ def ask():
 # ─── 6) GENERATE FLASHCARDS ────────────────────────────────────────────
 @app.post("/generate-cards")
 def generate_cards():
-    db = _load()
-    merged = "\n\n".join(f["text"] for f in db["files"])[:950_000]
+    data = request.get_json(force=True)
+    selected_files = data.get("filenames", [])
+    if not selected_files:
+        return jsonify(error="No files selected"), 400
 
+    db = _load()
+    db_files = db.get("files", [])
+    # only keep files whose name is in the selected list
+    files = [f for f in db_files if f["name"] in selected_files]
+    if not files:
+        return jsonify(error="No matching files found"), 404
+
+    # merge just the selected texts
+    merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
         "Extract flashcards from the following material. "
@@ -159,7 +170,7 @@ def generate_cards():
         )
         raw_text = response.choices[0].message.content.strip()
 
-        # Remove ``` markers if present
+        # strip ```json fences if present
         if raw_text.startswith("```json"):
             raw_text = raw_text.removeprefix("```json").removesuffix("```").strip()
         elif raw_text.startswith("```"):
@@ -185,7 +196,6 @@ def generate_cards():
 
     except json.JSONDecodeError:
         return jsonify(error="Failed to parse OpenAI response as JSON."), 500
-
     except Exception as e:
         return jsonify(error=str(e)), 500
 
