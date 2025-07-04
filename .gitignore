@@ -9,3 +9,6 @@ backend/node_modules/
 .env
 .env.local
 backend/study_data.json
+
+# Ignore virtual environment
+venv/
