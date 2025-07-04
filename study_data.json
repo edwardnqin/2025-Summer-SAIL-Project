@@ -1,0 +1,32 @@
+{
+    "cards": [
+        {
+            "question": "What is 1+1 equal to?",
+            "answer": "2",
+            "id": 1,
+            "next_review_date": "2025-07-05T02:01:00.416545",
+            "interval": 1,
+            "ease_factor": 2.66,
+            "repetitions": 1
+        },
+        {
+            "question": "What is 1+1?",
+            "answer": "2",
+            "id": 2,
+            "next_review_date": "2025-07-04T01:57:35.904116",
+            "interval": 1,
+            "ease_factor": 2.5,
+            "repetitions": 0
+        }
+    ],
+    "files": [
+        {
+            "name": "question.txt",
+            "text": "What is 1+1 equal to?\r\n"
+        },
+        {
+            "name": "test.txt",
+            "text": "what is 1+1?"
+        }
+    ]
+}

@@ -1,7 +1,7 @@
 flask
 flask-cors
 python-dotenv
-google-generativeai     # Gemini SDK
+openai     		# OpenAI
 PyMuPDF                 # PDF → text
 python-docx             # DOCX → text
 Pillow                  # basic image handling
