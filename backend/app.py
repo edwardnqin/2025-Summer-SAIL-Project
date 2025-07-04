@@ -22,6 +22,7 @@ CORS(app)
 
 # ─── Simple JSON "DB" ──────────────────────────────────────────────────
 DB = "study_data.json"
+
 def _load():
     return json.load(open(DB)) if os.path.exists(DB) else {"cards": [], "files": []}
 
@@ -55,7 +56,31 @@ def upload():
     _save(db)
     return jsonify(message=f"{name} uploaded.", total_files=len(db["files"]))
 
-# ─── 2) SUMMARIZE ───────────────────────────────────────────────────────
+# ─── 2) LIST FILES ─────────────────────────────────────────────────────
+@app.get("/list-files")
+def list_files():
+    files = _load().get("files", [])
+    return jsonify(files=[f["name"] for f in files])
+
+# ─── 3) DELETE FILE ────────────────────────────────────────────────────
+@app.post("/delete-file")
+def delete_file():
+    data = request.get_json(force=True)
+    filename = data.get("filename")
+    if not filename:
+        return jsonify(error="No filename provided"), 400
+
+    db = _load()
+    before = len(db["files"])
+    db["files"] = [f for f in db["files"] if f["name"] != filename]
+    _save(db)
+
+    after = len(db["files"])
+    if before == after:
+        return jsonify(error="File not found"), 404
+    return jsonify(message=f"Deleted {filename}")
+
+# ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
 @app.get("/summarize")
 def summarize():
     files = _load()["files"]
@@ -63,9 +88,7 @@ def summarize():
         return jsonify(error="No files"), 400
 
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
-    prompt = (
-        "Summarize the following material:\n\n" + merged
-    )
+    prompt = "Summarize the following material:\n\n" + merged
 
     response = openai.chat.completions.create(
         model=MODEL,
@@ -79,7 +102,7 @@ def summarize():
     summary = response.choices[0].message.content.strip()
     return jsonify(summary=summary)
 
-# ─── 3) ASK (Q&A) ───────────────────────────────────────────────────────
+# ─── 5) ASK ────────────────────────────────────────────────────────────
 @app.post("/ask")
 def ask():
     data = request.get_json(force=True)
@@ -106,24 +129,20 @@ def ask():
     answer = response.choices[0].message.content.strip()
     return jsonify(answer=answer)
 
-# ─── 4) GENERATE FLASHCARDS ─────────────────────────────────────────────
+# ─── 6) GENERATE FLASHCARDS ────────────────────────────────────────────
 @app.post("/generate-cards")
 def generate_cards():
     db = _load()
     merged = "\n\n".join(f["text"] for f in db["files"])[:950_000]
 
-    # New clearer prompt
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
-        "Extract all possible flashcards from the following material. "
-        "For each flashcard, return a JSON object with two fields: 'question' and 'answer'.\n"
-        "Return your response as a single JSON array of these objects, no explanations, just valid JSON.\n"
-        "Material:\n"
+        "Extract flashcards from the following material. "
+        "Return a JSON array of objects with 'question' and 'answer' fields.\n\n"
         f"{merged}"
     )
 
     try:
-        # Call OpenAI with updated syntax
         response = openai.chat.completions.create(
             model=MODEL,
             messages=[
@@ -132,20 +151,16 @@ def generate_cards():
             ],
             temperature=0.3
         )
-
-        # Get the text from the response
         raw_text = response.choices[0].message.content.strip()
 
-        # Strip code block markers if they exist
+        # Remove ``` markers if present
         if raw_text.startswith("```json"):
             raw_text = raw_text.removeprefix("```json").removesuffix("```").strip()
         elif raw_text.startswith("```"):
             raw_text = raw_text.removeprefix("```").removesuffix("```").strip()
 
-        # Parse the JSON output
         cards = json.loads(raw_text)
 
-        # Add spaced-repetition fields to each card
         now = datetime.datetime.utcnow().isoformat()
         next_id = max([0] + [c.get("id", 0) for c in db.get("cards", [])]) + 1
         for c in cards:
@@ -168,7 +183,7 @@ def generate_cards():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-# ─── 5) GET DUE FLASHCARD ───────────────────────────────────────────────
+# ─── 7) GET DUE CARD ───────────────────────────────────────────────────
 @app.get("/get-due-card")
 def get_due_card():
     now = datetime.datetime.utcnow()
@@ -178,7 +193,7 @@ def get_due_card():
         return jsonify(message="No cards due"), 200
     return jsonify(due[0])
 
-# ─── 6) UPDATE CARD PERFORMANCE ─────────────────────────────────────────
+# ─── 8) UPDATE CARD PERFORMANCE ────────────────────────────────────────
 @app.post("/update-card-performance")
 def update_performance():
     body = request.get_json(force=True)
@@ -190,7 +205,6 @@ def update_performance():
     if not card:
         return jsonify(error="Card not found"), 404
 
-    # SM-2 algorithm
     if q < 2:
         card.update(repetitions=0, interval=1)
     else:
@@ -205,6 +219,6 @@ def update_performance():
     _save(db)
     return jsonify(card)
 
-# ─── Run ────────────────────────────────────────────────────────────────
+# ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
