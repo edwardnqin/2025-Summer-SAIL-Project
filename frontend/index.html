@@ -7,24 +7,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav class="top-nav">
+        <a href="#upload-section">Upload</a>
+        <a href="#study-section">Flashcards</a>
+        <a href="#chat-section">Chat</a>
+        <a href="#focus-section">Focus Timer</a>
+    </nav>
+
     <div class="container">
         <h1>Wisebud</h1>
-        
-        <!-- Setup Area -->
-        <div id="setup-area">
-            <p>Paste your notes, or upload a document.</p>
-            <div class="input-group">
-                <textarea id="text-input" placeholder="Paste your course notes, lecture transcript, or any text here..."></textarea>
-                <div class="separator">OR</div>
-                <input type="file" id="file-upload" accept=".pdf,.txt">
-                <label for="file-upload" class="file-label">Choose a PDF or TXT File</label>
-                <span id="file-name-display"></span>
-            </div>
-            <button id="generate-btn">Generate Study Cards</button>
-        </div>
 
-        <!-- Study Area -->
-        <div id="study-area" class="hidden">
+        <!-- Upload Section -->
+        <section id="upload-section">
+            <h2>Upload & Summarize</h2>
+            <textarea id="text-input" placeholder="Paste your notes here..."></textarea>
+            <input type="file" id="file-upload" />
+            <button id="upload-btn">Upload</button>
+            <button id="summarize-btn">Summarize Notes</button>
+            <div id="summary-box">
+                <h3>Summary:</h3>
+                <p id="summary-text">Generated summary will appear here</p>
+            </div>
+        </section>
+
+        <!-- Study Section -->
+        <section id="study-section" class="hidden">
+            <h2>Flashcards</h2>
             <div id="card-container">
                 <div class="card">
                     <div class="card-front">
@@ -44,7 +52,24 @@
                     <button class="perf-btn easy" data-quality="3">Easy</button>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Chat Section -->
+        <section id="chat-section" class="hidden">
+            <h2>Chat</h2>
+            <form id="chat-form">
+                <textarea id="chat-input" placeholder="Type a message..."></textarea>
+                <button type="submit">Ask</button>
+            </form>
+            <textarea id="chat-log" readonly></textarea>
+        </section>
+
+        <!-- Focus Timer Section -->
+        <section id="focus-section" class="hidden">
+            <h2>Focus Timer</h2>
+            <div id="timer-display">25:00</div>
+            <button id="resume-btn">Resume</button>
+        </section>
 
         <!-- Status/Message Area -->
         <div id="status-area">
@@ -57,7 +82,6 @@
             <p>Step away for 5 minutes to refresh your mind.</p>
             <button id="resume-btn">Resume Studying</button>
         </div>
-
     </div>
     <script src="script.js"></script>
 </body>
