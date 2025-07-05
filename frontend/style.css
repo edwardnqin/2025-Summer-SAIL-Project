@@ -1,3 +1,4 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f2f5;
@@ -5,149 +6,117 @@ body {
     padding: 0;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Navigation Bar */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #007aff;
+    color: white;
+    display: flex;
+    justify-content: center; /* Center the content */
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
+.top-nav h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Dashboard Layout */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 80px 20px 20px; /* Add padding to avoid overlap with fixed nav */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Card Style */
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+    margin-top: 0;
     color: #007aff;
 }
 
-textarea {
+/* Inputs and Buttons */
+textarea, input[type="file"] {
     width: 100%;
-    height: 100px;
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    font-size: 1rem;
 }
 
 button {
     background-color: #007aff;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
-.hidden {
-    display: none;
-}
-
+/* Timer Display */
 #timer-display {
     font-size: 2rem;
-    margin: 20px 0;
     text-align: center;
+    margin: 20px 0;
 }
 
-/* NEW STYLES */
-.input-group {
-    margin: 1.5rem 0;
-}
-#text-input {
-    width: 95%;
+/* Chat Log */
+#chat-log {
+    width: 100%;
     height: 150px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    font-size: 0.95rem;
-    font-family: inherit;
-    margin-bottom: 1rem;
-}
-.separator {
-    font-weight: 600;
-    color: #999;
-    margin: 1rem 0;
-}
-input[type="file"] {
-    display: none;
-}
-.file-label {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #f0f2f5;
-    border: 1px dashed #ccc;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-.file-label:hover {
-    background-color: #e9ecef;
-}
-#file-name-display {
-    display: block;
     margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
     font-size: 0.9rem;
-    color: #6c757d;
+    resize: none;
 }
-/* END NEW STYLES */
-
-button#generate-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.1rem;
-}
-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    background-color: #007aff;
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-button:hover { background-color: #0056b3; }
-
-/* Card Area */
-#card-container {
-    min-height: 250px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-.card {
-    background-color: #eef7ff;
-    border: 1px solid #cce4ff;
-    border-radius: 8px;
-    padding: 2rem;
-    width: 100%;
-}
-#question-text { font-size: 1.4rem; font-weight: 500; }
-#answer-text { font-size: 1.2rem; color: #0056b3; font-weight: 600; }
-.card-back { color: #0056b3; }
-.mcq-option {
-    display: block; width: 90%; margin: 10px auto; padding: 12px;
-    border: 1px solid #ddd; border-radius: 6px; background-color: white; cursor: pointer;
-}
-.mcq-option:hover { background-color: #f0f2f5; }
-.mcq-option.correct { background-color: #d4edda; border-color: #c3e6cb; }
-.mcq-option.incorrect { background-color: #f8d7da; border-color: #f5c6cb; }
-
-/* Controls */
-#study-controls button { margin: 0 5px; }
-.perf-btn.hard { background-color: #dc3545; }
-.perf-btn.hard:hover { background-color: #c82333; }
-.perf-btn.medium { background-color: #ffc107; color: #212529; }
-.perf-btn.medium:hover { background-color: #e0a800; }
-.perf-btn.easy { background-color: #28a745; }
-.perf-btn.easy:hover { background-color: #218838; }
 
 /* Status & Break */
-#status-area { min-height: 24px; margin-top: 1rem; color: #6c757d; }
+#status-area {
+    min-height: 24px;
+    margin-top: 1rem;
+    color: #6c757d;
+}
+
 #break-reminder {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.7); color: white;
-    display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
 }

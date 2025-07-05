@@ -8,17 +8,12 @@
 </head>
 <body>
     <nav class="top-nav">
-        <a href="#upload-section">Upload</a>
-        <a href="#study-section">Flashcards</a>
-        <a href="#chat-section">Chat</a>
-        <a href="#focus-section">Focus Timer</a>
+        <h1>Wisebud</h1>
     </nav>
 
-    <div class="container">
-        <h1>Wisebud</h1>
-
+    <div class="dashboard">
         <!-- Upload Section -->
-        <section id="upload-section">
+        <section id="upload-section" class="card">
             <h2>Upload & Summarize</h2>
             <textarea id="text-input" placeholder="Paste your notes here..."></textarea>
             <input type="file" id="file-upload" />
@@ -31,12 +26,12 @@
         </section>
 
         <!-- Study Section -->
-        <section id="study-section" class="hidden">
+        <section id="study-section" class="card">
             <h2>Flashcards</h2>
             <div id="card-container">
                 <div class="card">
                     <div class="card-front">
-                        <p id="question-text"></p>
+                        <p id="question-text">Flashcard question or quiz will appear here</p>
                         <div id="mcq-options"></div>
                     </div>
                     <div class="card-back hidden">
@@ -44,18 +39,11 @@
                     </div>
                 </div>
             </div>
-            <div id="study-controls">
-                <button id="show-answer-btn">Show Answer</button>
-                <div id="performance-btns" class="hidden">
-                    <button class="perf-btn hard" data-quality="1">Hard</button>
-                    <button class="perf-btn medium" data-quality="2">Medium</button>
-                    <button class="perf-btn easy" data-quality="3">Easy</button>
-                </div>
-            </div>
+            <button id="show-answer-btn">Show Answer</button>
         </section>
 
         <!-- Chat Section -->
-        <section id="chat-section" class="hidden">
+        <section id="chat-section" class="card">
             <h2>Chat</h2>
             <form id="chat-form">
                 <textarea id="chat-input" placeholder="Type a message..."></textarea>
@@ -65,24 +53,13 @@
         </section>
 
         <!-- Focus Timer Section -->
-        <section id="focus-section" class="hidden">
+        <section id="focus-section" class="card">
             <h2>Focus Timer</h2>
             <div id="timer-display">25:00</div>
             <button id="resume-btn">Resume</button>
         </section>
-
-        <!-- Status/Message Area -->
-        <div id="status-area">
-            <p id="status-message"></p>
-        </div>
-
-        <!-- Break Reminder -->
-        <div id="break-reminder" class="hidden">
-            <h2>Time for a break!</h2>
-            <p>Step away for 5 minutes to refresh your mind.</p>
-            <button id="resume-btn">Resume Studying</button>
-        </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
