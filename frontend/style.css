@@ -188,3 +188,31 @@ button:hover {
 .hidden {
     display: none;
 }
+
+/* Summarize Page Styles */
+.content {
+    margin: 80px auto;
+    padding: 20px;
+    max-width: 600px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content h2 {
+    color: #007aff;
+    margin-bottom: 20px;
+}
+
+#summarize-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#summary-output {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
