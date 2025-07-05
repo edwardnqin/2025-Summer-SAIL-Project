@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const API_URL = 'http://127.0.0.1:5001';
 
   // Durations for Pomodoro-style sessions
-  const WORK_SESSION_DURATION  = 20 * 60 * 1000;  // 20 min
-  const BREAK_SESSION_DURATION = 10 * 60 * 1000;  // 10 min
+  const WORK_SESSION_DURATION  = 20 * 60 * 1000;
+  const BREAK_SESSION_DURATION = 10 * 60 * 1000;
 
   /* DOM SELECTORS */
   const setupArea       = qs('#setup-area');
@@ -32,9 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const breakReminder   = qs('#break-reminder');
   const resumeBtn       = qs('#resume-btn');
 
+  const timerDisplay     = document.querySelector('#timer-display text');
+  const timerInput       = document.querySelector('#timer-input');
+  const setTimerBtn     = document.querySelector('#set-timer-btn');
+  const startTimerBtn   = document.querySelector('#start-timer-btn');
+  const timerModal       = document.querySelector('#timer-modal');
+  const saveTimerBtn     = document.querySelector('#save-timer-btn');
+
   /* --------------- STATE ------------------ */
   let currentCard = null;
   let workTimer, breakTimer;
+  let timeLeft = 25 * 60;
+  let timer = null;
 
   /* --------------- HELPERS ---------------- */
   function qs(sel) { return document.querySelector(sel); }
@@ -57,6 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }, WORK_SESSION_DURATION);
   }
+
+  // Update the clock display
+  const updateClock = () => {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Format time as mm:ss
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   /* --------------- NEW BACKEND CALLS ------ */
   async function uploadFileOrText() {
@@ -220,6 +243,39 @@ document.addEventListener('DOMContentLoaded', () => {
     startWorkTimer();
   };
 
+  /* --------------- TIMER MODAL LOGIC ------- */
+  // Show modal when "Set Timer" is clicked
+  setTimerBtn.addEventListener('click', () => {
+    timerModal.classList.remove('hidden');
+    timerInput.value = formatTime(timeLeft); // Pre-fill with last set time
+  });
+
+  // Save the timer value and close modal
+  saveTimerBtn.addEventListener('click', () => {
+    const [minutes, seconds] = timerInput.value.split(':').map(Number);
+    if (!isNaN(minutes) && !isNaN(seconds)) {
+      timeLeft = minutes * 60 + seconds;
+      updateClock();
+      timerModal.classList.add('hidden');
+    } else {
+      alert('Invalid time format. Please use mm:ss.');
+    }
+  });
+
+  // Start the timer
+  startTimerBtn.addEventListener('click', () => {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        updateClock();
+      } else {
+        clearInterval(timer);
+      }
+    }, 1000);
+  });
+
   /* --------------- INIT ------------------- */
   fetchDueCard();
+  updateClock();
 });

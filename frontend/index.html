@@ -19,10 +19,6 @@
             <input type="file" id="file-upload" />
             <button id="upload-btn">Upload</button>
             <button id="summarize-btn">Summarize Notes</button>
-            <div id="summary-box">
-                <h3>Summary:</h3>
-                <p id="summary-text">Generated summary will appear here</p>
-            </div>
         </section>
 
         <!-- Study Section -->
@@ -34,12 +30,12 @@
                         <p id="question-text">Flashcard question or quiz will appear here</p>
                         <div id="mcq-options"></div>
                     </div>
-                    <div class="card-back hidden">
-                        <p id="answer-text"></p>
-                    </div>
                 </div>
             </div>
             <button id="show-answer-btn">Show Answer</button>
+            <div id="answer-box">
+                <p id="answer-text">Answer will appear here</p>
+            </div>
         </section>
 
         <!-- Chat Section -->
@@ -55,8 +51,20 @@
         <!-- Focus Timer Section -->
         <section id="focus-section" class="card">
             <h2>Focus Timer</h2>
-            <div id="timer-display">25:00</div>
-            <button id="resume-btn">Resume</button>
+            <div id="timer-display">
+                <svg id="clock-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="#007aff" stroke-width="5" fill="none"></circle>
+                    <text x="50" y="55" text-anchor="middle" font-size="20" fill="#007aff">25:00</text>
+                </svg>
+            </div>
+            <button id="set-timer-btn">Set Timer</button>
+            <button id="start-timer-btn">Start</button>
+
+            <!-- Hidden input for setting timer -->
+            <div id="timer-modal" class="hidden">
+                <input type="text" id="timer-input" placeholder="Enter time (mm:ss)" />
+                <button id="save-timer-btn">Save</button>
+            </div>
         </section>
     </div>
 
