@@ -275,6 +275,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
 
+  document.getElementById('upload-btn').addEventListener('click', async () => {
+    const fileInput = document.getElementById('file-upload');
+    const uploadBtn = document.getElementById('upload-btn');
+
+    if (!fileInput.files.length) {
+        alert('Please select a file to upload.');
+        return;
+    }
+
+    // Add progress fill element to the button
+    const progressFill = document.createElement('div');
+    progressFill.classList.add('progress-fill');
+    uploadBtn.textContent = 'Uploading...';
+    uploadBtn.appendChild(progressFill);
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        // Simulate progress update
+        for (let i = 0; i <= 100; i++) {
+            await new Promise(resolve => setTimeout(resolve, 30)); // Simulate delay
+            progressFill.style.width = `${i}%`;
+        }
+
+        alert('Upload successful!');
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    } finally {
+        // Reset button after upload
+        uploadBtn.textContent = 'Upload';
+        progressFill.remove();
+    }
+});
+
   /* --------------- INIT ------------------- */
   fetchDueCard();
   updateClock();

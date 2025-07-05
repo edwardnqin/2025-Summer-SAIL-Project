@@ -82,6 +82,7 @@ button {
     font-size: 1rem;
     transition: background-color 0.2s;
     margin-top: 10px;
+    text-align: center;
 }
 
 button:hover {
@@ -215,4 +216,55 @@ button:hover {
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #f9f9f9;
+}
+
+#upload-progress {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+#progress-fill {
+    height: 100%;
+    width: 0;
+    background-color: #007aff;
+    transition: width 0.2s ease;
+}
+
+button#upload-btn {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    text-align: center;
+    position: relative; /* 为进度条定位 */
+    overflow: hidden;
+}
+
+button#upload-btn .progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background-color: #0056b3;
+    transition: width 0.2s ease;
 }
