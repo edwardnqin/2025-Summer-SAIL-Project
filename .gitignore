@@ -8,7 +8,9 @@ backend/node_modules/
 # Environment & build artifacts
 .env
 .env.local
-backend/study_data.json
 
 # Ignore virtual environment
 venv/
+
+# Ignores Database
+study_data.json
