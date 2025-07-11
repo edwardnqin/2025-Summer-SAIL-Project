@@ -1,96 +1,127 @@
 # Wisebud
 
-Wisebud is a smart study assistant that leverages the Google Gemini API to automatically generate flashcards and multiple-choice questions from your course materials. It uses a spaced repetition system (SRS) to schedule reviews, helping you learn more efficiently and retain information longer.
+Wisebud is a smart study assistant that helps students learn more efficiently by automatically generating study materials from their own notes and documents. Users can upload files, generate summaries, flashcards, and quizzes, and interact with their study content through natural language questions. Wisebud is designed for independent learners who want a simple, AI-powered study workflow.
 
-## Core Features
+## ✨ Features
 
-*   **AI-Powered Content Generation**: Automatically create flashcards and multiple-choice questions by pasting text or uploading PDF documents.
-*   **Spaced Repetition System (SRS)**: The application tracks your performance on each card and schedules the next review at the optimal time to enhance long-term memory.
-*   **Multiple Card Types**: Generates a mix of classic flashcards (question/answer) and multiple-choice questions to vary your study sessions.
-*   **Performance-Based Learning**: Cards you find difficult will appear more frequently, while concepts you've mastered are shown less often.
-*   **Integrated Break Timer**: Reminds you to take a 5-minute break after 25 minutes of studying to help maintain focus.
+### Core Learning Features
 
-## Tech Stack
+* **Smart Content Generation:** Upload TXT, PDF, DOCX, or image files to generate:
 
-*   **Backend**: Python, Flask, `google-generativeai` for the Gemini API, `PyMuPDF` for PDF processing.
-*   **Frontend**: HTML, CSS, and vanilla JavaScript.
+  * Concise summaries
+  * Flashcards (Q\&A style)
+  * Multiple-choice quizzes
 
-## Setup and Installation
+* **Ask Your Study Materials:** Ask natural language questions, and Wisebud will find the answers in your uploaded files, summaries, quizzes, and flashcards.
 
-To run this project locally, follow these steps:
+* **Interactive Flashcards:** Practice flashcards directly in the app, and mark cards as correct or incorrect. Correct cards are removed from your study set.
+
+* **Simple Data Storage:** All study content is saved locally in a `study_data.json` file.
+
+* **Automatic Cleanup:** Summaries and quizzes are automatically cleared every 24 hours to keep your study content fresh.
+
+## 🛠 Tech Stack
+
+| Layer    | Technology                                             |
+| -------- | ------------------------------------------------------ |
+| Backend  | Python, Flask, Flask-CORS, OpenAI API, PyMuPDF, Pillow |
+| Frontend | HTML, CSS, JavaScript (vanilla)                        |
+| Storage  | Local JSON (`study_data.json`)                         |
+
+## 🚀 Getting Started
 
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/ethanchang235/spaced-rep-study-assistant.git
-cd spaced-rep-study-assistant```
+cd spaced-rep-study-assistant
+```
 
-### 2. Set Up the Backend
-
-The backend server handles the logic for card generation and the spaced repetition algorithm.
+### 2. Set Up the Backend Environment
 
 ```bash
-# Navigate to the backend directory
-cd backend
+python -m venv venv
+venv\Scripts\activate     # On Windows
+# or
+source venv/bin/activate  # On macOS/Linux
 
-# Create and activate a Python virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install the required Python packages
 pip install -r requirements.txt
-
-*Note: If a `requirements.txt` file does not exist, you can create one or install the packages manually:*
-`pip install flask google-generativeai python-dotenv Flask-Cors PyMuPDF`
+```
 
 ### 3. Configure Environment Variables
 
-You need to provide your Google Gemini API key.
+Create a `.env` file in the root directory and add your OpenAI API key:
 
-1.  In the `backend` directory, create a new file named `.env`.
-2.  Add your API key to this file as follows:
+```env
+OPENAI_API_KEY="sk-your-api-key"
+```
 
-    ```
-    GOOGLE_API_KEY="YOUR_API_KEY_HERE"
-    ```
-
-## Running the Application
-
-You will need two separate terminal windows to run the application.
-
-### Terminal 1: Start the Backend Server
+### 4. Run the Backend Server
 
 ```bash
-# In the backend directory with the virtual environment active
 python app.py
+```
+
+The backend will be available at:
 
 ```
-The backend will now be running on `http://127.0.0.1:5001`.
+http://localhost:5001
+```
 
-### Terminal 2: Start the Frontend Server
+### 5. Run the Frontend (Optional)
+
+If your frontend is a static website:
 
 ```bash
-# Navigate to the frontend directory
 cd frontend
-
-# Start Python's built-in HTTP server
-python3 -m http.server 8000
+python -m http.server 8000
 ```
-The frontend will now be accessible in your browser.
 
-### Access the Application
+Visit:
 
-Open your web browser and navigate to:
+```
+http://localhost:8000
+```
 
-`http://localhost:8000`
+## 👨‍💻 Application Workflow
 
-## How to Use
+1. **Upload Files:** Upload TXT, PDF, DOCX, or image files as your study content.
+2. **Generate Study Materials:** Click buttons in the frontend to generate:
 
-1.  **Provide Content**: Paste your study notes into the text area or click the "Choose a PDF or TXT File" button to upload a document.
-2.  **Generate Cards**: Click the "Generate Study Cards" button. The AI will process your content and create a new set of flashcards.
-3.  **Study**:
-    *   For flashcards, think of the answer and click "Show Answer".
-    *   For multiple-choice questions, select the option you believe is correct.
-4.  **Rate Your Performance**: After revealing the answer, rate your confidence ("Hard", "Medium", or "Easy"). This will determine when you see the card next.
-5.  **Keep Going**: Continue studying until the app tells you there are no more cards due for review.
-6.  **Take Breaks**: The app will automatically prompt you to take a break after 25 minutes.
+   * Summaries
+   * Flashcards
+   * Quizzes
+3. **Study:** Practice flashcards and answer quizzes in the app. Mark flashcards correct or incorrect.
+4. **Ask Questions:** Type any question into the app to search your study data and get an AI-generated answer.
+5. **Cleanup:** Summaries and quizzes are cleared from your database every 24 hours.
+
+## 🔗 Backend API Endpoints
+
+| Route             | Method | Purpose                                  |
+| ----------------- | ------ | ---------------------------------------- |
+| `/upload`         | POST   | Upload study materials                   |
+| `/summarize`      | POST   | Generate summaries                       |
+| `/generate-cards` | POST   | Generate flashcards                      |
+| `/generate-quiz`  | POST   | Generate multiple-choice quizzes         |
+| `/ask`            | POST   | Ask questions about your study materials |
+| `/get-card`       | GET    | Get a random flashcard                   |
+| `/answer-card`    | POST   | Mark a flashcard correct/incorrect       |
+
+These are called automatically by the frontend's buttons and forms.
+
+## 🔒 Security & Data
+
+* All study data is stored **locally** in `study_data.json`.
+* Your OpenAI API key is kept private in your `.env` file.
+
+## 📈 Future Improvements
+
+* Add spaced repetition algorithms for optimized review timing.
+* Add user accounts and personal study profiles.
+* Deploy the backend to a cloud platform.
+* Improve frontend UI for a smoother user experience.
+* Add study session tracking and statistics.
+
+---
+
+Wisebud is designed to be a simple, fast, and personal AI-powered study companion.
