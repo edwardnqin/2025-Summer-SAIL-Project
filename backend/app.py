@@ -26,7 +26,26 @@ CORS(app)
 DB = "study_data.json"
 
 def _load():
-    return json.load(open(DB)) if os.path.exists(DB) else {"cards": [], "files": []}
+    # If file doesn't exist, return a complete default structure
+    if not os.path.exists(DB):
+        return {
+            "cards": [],
+            "files": [],
+            "summaries": [],
+            "quizzes": []
+        }
+
+    # Load existing JSON file
+    with open(DB) as f:
+        data = json.load(f)
+
+    # Ensure all required sections exist
+    data.setdefault("cards", [])
+    data.setdefault("files", [])
+    data.setdefault("summaries", [])
+    data.setdefault("quizzes", [])
+
+    return data
 
 def _save(data):
     with open(DB, "w") as f:
@@ -90,14 +109,18 @@ def summarize():
     if not selected_files:
         return jsonify(error="No files selected"), 400
 
-    db_files = _load().get("files", [])
+    # Load database to get the file texts
+    db = _load()
+    db_files = db.get("files", [])
     files = [f for f in db_files if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
 
+    # Merge the file texts
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = "Summarize the following material:\n\n" + merged
 
+    # Call OpenAI
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -108,6 +131,18 @@ def summarize():
     )
 
     summary = response.choices[0].message.content.strip()
+
+    # RE-LOAD the database to save the summary
+    db = _load()
+    if "summaries" not in db:
+        db["summaries"] = []
+    db["summaries"].append({
+        "timestamp": datetime.datetime.now().isoformat(),
+        "files": selected_files,
+        "summary": summary
+    })
+    _save(db)
+
     return jsonify(summary=summary)
 
 # ─── 5) ASK ────────────────────────────────────────────────────────────
@@ -118,14 +153,42 @@ def ask():
     if not query:
         return jsonify(error="No query"), 400
 
-    ctx = "\n\n".join(f["text"] for f in _load()["files"])[:950_000]
+    # Load all study data
+    db = _load()
+
+    # Build context from files
+    files_text = "\n\n".join(f["text"] for f in db.get("files", []))
+
+    # Build context from summaries
+    summaries_text = "\n\n".join(s["summary"] for s in db.get("summaries", []))
+
+    # Build context from quizzes
+    quizzes_text = "\n\n".join(
+        "Q: " + q["question"] + "\n" +
+        "\n".join([f"{letter}: {text}" for letter, text in q.get("options", {}).items()]) + "\n" +
+        f"Correct Answer: {q.get('correctAnswer')}"
+        for quiz in db.get("quizzes", [])
+        for q in quiz.get("questions", [])
+    )
+
+    # Build context from flashcards
+    flashcards_text = "\n\n".join(
+        f"Q: {c.get('question')}\nA: {c.get('answer')}"
+        for c in db.get("cards", [])
+    )
+
+    # Combine all contexts (truncate to ~950,000 chars if needed)
+    context = "\n\n".join([files_text, summaries_text, quizzes_text, flashcards_text])[:950_000]
+
+    # Build prompt for GPT
     prompt = (
-        "You are a helpful tutor. Use only the material below to answer the question.\n\n"
-        + ctx
+        "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
+        + context
         + "\n\nQuestion: "
         + query
     )
 
+    # Call OpenAI
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -134,6 +197,7 @@ def ask():
         ],
         temperature=0.3
     )
+
     answer = response.choices[0].message.content.strip()
     return jsonify(answer=answer)
 
@@ -227,10 +291,13 @@ def generate_quiz():
     selected_files = data.get("filenames", [])
     if not selected_files:
         return jsonify(error="No files selected"), 400
+
+    # Load the file texts
     db_files = _load().get("files", [])
     files = [f for f in db_files if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
+
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a quiz generator for a midterm exam. Based on the following material, "
@@ -238,6 +305,7 @@ def generate_quiz():
         "Each question must have exactly four distinct options labeled A, B, C, and D. "
         "Return a JSON array of objects, each with 'question', 'options', and 'correctAnswer'.\n\n" + merged
     )
+
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -246,10 +314,23 @@ def generate_quiz():
         ],
         temperature=0.3
     )
+
     raw = response.choices[0].message.content.strip()
     match = re.search(r"(\[.*\])", raw, re.S)
     clean = match.group(1) if match else raw
     questions = json.loads(clean)
+
+    # ✅ RE-LOAD database for saving
+    db = _load()
+    if "quizzes" not in db:
+        db["quizzes"] = []
+    db["quizzes"].append({
+        "timestamp": datetime.datetime.now().isoformat(),
+        "files": selected_files,
+        "questions": questions
+    })
+    _save(db)
+
     return jsonify(questions=questions)
 
 # ─── Run ───────────────────────────────────────────────────────────────
