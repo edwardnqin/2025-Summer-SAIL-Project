@@ -40,10 +40,15 @@
 
         <!-- Chat Section -->
         <section id="chat-section" class="card">
-            <h2>Chat</h2>
+            <h2>
+                <a href="https://chat.openai.com/" target="_blank" style="text-decoration: none; color: inherit;">Chat</a>
+            </h2>
             <form id="chat-form">
                 <textarea id="chat-input" placeholder="Type a message..."></textarea>
-                <button type="submit">Ask</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" id="ask-btn">Ask</button>
+                    <button type="button" id="history-btn">History</button>
+                </div>
             </form>
             <textarea id="chat-log" readonly></textarea>
         </section>
