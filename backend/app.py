@@ -150,6 +150,7 @@ def generate_cards():
     if not files:
         return jsonify(error="No matching files found"), 404
 
+    # Merge the selected file texts
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
@@ -158,81 +159,33 @@ def generate_cards():
         + merged
     )
 
-    try:
-        response = openai.chat.completions.create(
-            model=MODEL,
-            messages=[
-                {"role": "system", "content": "You generate flashcards in JSON."},
-                {"role": "user",   "content": prompt}
-            ],
-            temperature=0.3
-        )
-        raw_text = response.choices[0].message.content.strip()
+    # Send request to OpenAI
+    response = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": "You generate flashcards in JSON."},
+            {"role": "user",   "content": prompt}
+        ],
+        temperature=0.3
+    )
+    raw_text = response.choices[0].message.content.strip()
 
-        # --- Robust JSON extraction ---
-        match = re.search(r'(\[.*\])', raw_text, re.S)
-        clean = match.group(1) if match else raw_text
-        cards = json.loads(clean)
+    # Extract JSON from response
+    match = re.search(r'(\[.*\])', raw_text, re.S)
+    clean = match.group(1) if match else raw_text
+    cards = json.loads(clean)
 
-        # --- Append cards as before ---
-        now = datetime.datetime.utcnow().isoformat()
-        next_id = max([0] + [c.get("id", 0) for c in db.get("cards", [])]) + 1
-        for c in cards:
-            c.update(
-                id=next_id,
-                next_review_date=now,
-                interval=1,
-                ease_factor=2.5,
-                repetitions=0
-            )
-            db["cards"].append(c)
-            next_id += 1
+    # Assign an ID to each card and save
+    next_id = max([0] + [c.get("id", 0) for c in db.get("cards", [])]) + 1
+    for c in cards:
+        c.update(id=next_id)
+        db["cards"].append(c)
+        next_id += 1
 
-        _save(db)
-        return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
-
-    except json.JSONDecodeError:
-        return jsonify(error="Failed to parse OpenAI response as JSON."), 500
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-
-# ─── 7) GET DUE CARD ───────────────────────────────────────────────────
-@app.get("/get-due-card")
-def get_due_card():
-    now = datetime.datetime.utcnow()
-    due = [c for c in _load().get("cards", [])
-           if datetime.datetime.fromisoformat(c.get("next_review_date")) <= now]
-    if not due:
-        return jsonify(message="No cards due"), 200
-    return jsonify(due[0])
-
-# ─── 8) UPDATE CARD PERFORMANCE ────────────────────────────────────────
-@app.post("/update-card-performance")
-def update_performance():
-    body = request.get_json(force=True)
-    cid = body.get("cardId")
-    q = int(body.get("quality", 0))
-
-    db = _load()
-    card = next((c for c in db.get("cards", []) if c.get("id") == cid), None)
-    if not card:
-        return jsonify(error="Card not found"), 404
-
-    if q < 2:
-        card.update(repetitions=0, interval=1)
-    else:
-        card["repetitions"] += 1
-        ef = card["ease_factor"] + 0.1 - (3 - q) * (0.08 + (3 - q) * 0.02)
-        card["ease_factor"] = max(1.3, ef)
-        card["interval"] = (1 if card["repetitions"] == 1 else
-                            6 if card["repetitions"] == 2 else
-                            round(card["interval"] * card["ease_factor"]))
-    card["next_review_date"] = (datetime.datetime.utcnow() +
-        datetime.timedelta(days=card["interval"])).isoformat()
     _save(db)
-    return jsonify(card)
+    return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
-# ─── 9) GENERATE QUIZ ───────────────────────────────────────────────────
+# ─── 7) GENERATE QUIZ ───────────────────────────────────────────────────
 @app.post("/generate-quiz")
 def generate_quiz():
     data = request.get_json(force=True)
