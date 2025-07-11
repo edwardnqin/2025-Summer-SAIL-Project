@@ -7,58 +7,67 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <nav class="top-nav">
         <h1>Wisebud</h1>
-        
-        <!-- Setup Area -->
-        <div id="setup-area">
-            <p>Paste your notes, or upload a document.</p>
-            <div class="input-group">
-                <textarea id="text-input" placeholder="Paste your course notes, lecture transcript, or any text here..."></textarea>
-                <div class="separator">OR</div>
-                <input type="file" id="file-upload" accept=".pdf,.txt">
-                <label for="file-upload" class="file-label">Choose a PDF or TXT File</label>
-                <span id="file-name-display"></span>
-            </div>
-            <button id="generate-btn">Generate Study Cards</button>
-        </div>
+    </nav>
 
-        <!-- Study Area -->
-        <div id="study-area" class="hidden">
+    <div class="dashboard">
+        <!-- Upload Section -->
+        <section id="upload-section" class="card">
+            <h2>Upload & Summarize</h2>
+            <textarea id="text-input" placeholder="Paste your notes here..."></textarea>
+            <input type="file" id="file-upload" />
+            <button id="upload-btn">Upload</button>
+            <button id="summarize-btn" onclick="location.href='summarize.html'">Summarize Notes</button>
+        </section>
+
+        <!-- Study Section -->
+        <section id="study-section" class="card">
+            <h2>Flashcards</h2>
             <div id="card-container">
                 <div class="card">
                     <div class="card-front">
-                        <p id="question-text"></p>
+                        <p id="question-text">Flashcard question or quiz will appear here</p>
                         <div id="mcq-options"></div>
                     </div>
-                    <div class="card-back hidden">
-                        <p id="answer-text"></p>
-                    </div>
                 </div>
             </div>
-            <div id="study-controls">
-                <button id="show-answer-btn">Show Answer</button>
-                <div id="performance-btns" class="hidden">
-                    <button class="perf-btn hard" data-quality="1">Hard</button>
-                    <button class="perf-btn medium" data-quality="2">Medium</button>
-                    <button class="perf-btn easy" data-quality="3">Easy</button>
-                </div>
+            <button id="show-answer-btn">Show Answer</button>
+            <div id="answer-box">
+                <p id="answer-text">Answer will appear here</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Status/Message Area -->
-        <div id="status-area">
-            <p id="status-message"></p>
-        </div>
+        <!-- Chat Section -->
+        <section id="chat-section" class="card">
+            <h2>Chat</h2>
+            <form id="chat-form">
+                <textarea id="chat-input" placeholder="Type a message..."></textarea>
+                <button type="submit">Ask</button>
+            </form>
+            <textarea id="chat-log" readonly></textarea>
+        </section>
 
-        <!-- Break Reminder -->
-        <div id="break-reminder" class="hidden">
-            <h2>Time for a break!</h2>
-            <p>Step away for 5 minutes to refresh your mind.</p>
-            <button id="resume-btn">Resume Studying</button>
-        </div>
+        <!-- Focus Timer Section -->
+        <section id="focus-section" class="card">
+            <h2>Focus Timer</h2>
+            <div id="timer-display">
+                <svg id="clock-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="#007aff" stroke-width="5" fill="none"></circle>
+                    <text x="50" y="55" text-anchor="middle" font-size="20" fill="#007aff">25:00</text>
+                </svg>
+            </div>
+            <button id="set-timer-btn">Set Timer</button>
+            <button id="start-timer-btn">Start</button>
 
+            <!-- Hidden input for setting timer -->
+            <div id="timer-modal" class="hidden">
+                <input type="text" id="timer-input" placeholder="Enter time (mm:ss)" />
+                <button id="save-timer-btn">Save</button>
+            </div>
+        </section>
     </div>
-    <script src="script.js"></script>
+
+    <script src="scripts/script.js"></script>
 </body>
 </html>
