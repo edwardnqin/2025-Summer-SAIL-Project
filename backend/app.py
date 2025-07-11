@@ -118,7 +118,7 @@ def summarize():
 
     # Merge the file texts
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
-    prompt = "Summarize the following material:\n\n" + merged
+    prompt = "You are a study assistant helping students learn faster.\nSummarize the following material clearly and concisely:\n\n" + merged
 
     # Call OpenAI
     response = openai.chat.completions.create(
@@ -219,7 +219,7 @@ def generate_cards():
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
-        "Extract flashcards from the following material. "
+        "Extract simple and clear flashcards from the following material, suitable for students to study."
         "Return a JSON array of objects with 'question' and 'answer' fields.\n\n"
         + merged
     )
@@ -301,7 +301,7 @@ def generate_quiz():
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a quiz generator for a midterm exam. Based on the following material, "
-        "create multiple-choice questions covering key concepts. "
+        "create clear multiple-choice questions covering key concepts that students should understand."
         "Each question must have exactly four distinct options labeled A, B, C, and D. "
         "Return a JSON array of objects, each with 'question', 'options', and 'correctAnswer'.\n\n" + merged
     )
@@ -320,7 +320,7 @@ def generate_quiz():
     clean = match.group(1) if match else raw
     questions = json.loads(clean)
 
-    # ✅ RE-LOAD database for saving
+    # RE-LOAD database for saving
     db = _load()
     if "quizzes" not in db:
         db["quizzes"] = []
