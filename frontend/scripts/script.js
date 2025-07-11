@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const summarizeBtn    = qs('#summarize-btn');
   const chatForm        = qs('#chat-form');
   const chatLog         = qs('#chat-log');
+  const chatSection     = qs('#chat-section');
   const statusMsg       = qs('#status-message');
 
   const textInput       = qs('#text-input');
@@ -219,6 +220,15 @@ document.addEventListener('DOMContentLoaded', () => {
       chatLog.value += `[error: ${err.message}]\n`;
     }
   };
+
+  chatSection.addEventListener('click', e => {
+    if (e.target.closest('#chat-input') ||
+        e.target.closest('#chat-form button') ||
+        e.target.closest('#chat-log')) {
+      return;
+    }
+    window.open('https://chat.openai.com', '_blank');
+  });
 
   showAnswerBtn.onclick = () => {
     cardBack.classList.remove('hidden');

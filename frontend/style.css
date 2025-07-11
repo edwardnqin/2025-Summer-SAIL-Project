@@ -281,3 +281,12 @@ button#upload-btn .progress-fill {
     background-color: #0056b3;
     transition: width 0.2s ease;
 }
+
+#chat-section {
+  cursor: pointer;
+}
+
+#chat-section textarea,
+#chat-section button {
+  cursor: auto;
+}
