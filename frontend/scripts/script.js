@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const breakReminder   = qs('#break-reminder');
   const resumeBtn       = qs('#resume-btn');
 
+  const cancelTimerBtn = qs('#cancel-timer-btn');
+
   const timerDisplay     = document.querySelector('#timer-display text');
   const timerInput       = document.querySelector('#timer-input');
   const setTimerBtn     = document.querySelector('#set-timer-btn');
@@ -56,11 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // After WORK_SESSION_DURATION, show break reminder
     workTimer = setTimeout(() => {
       studyArea.classList.add('hidden');
-      breakReminder.classList.remove('hidden');
+      breakReminder.classList.add('visible');
 
       // After BREAK_SESSION_DURATION, auto-resume study
       breakTimer = setTimeout(() => {
-        breakReminder.classList.add('hidden');
+        breakReminder.classList.remove('visible');
         studyArea.classList.remove('hidden');
       }, BREAK_SESSION_DURATION);
 
@@ -238,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   resumeBtn.onclick = () => {
-    breakReminder.classList.add('hidden');
+    breakReminder.classList.remove('visible');
     studyArea.classList.remove('hidden');
     startWorkTimer();
   };
@@ -262,6 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  cancelTimerBtn.addEventListener('click', () => {
+    timerModal.classList.add('hidden');
+  });
+
   // Start the timer
   startTimerBtn.addEventListener('click', () => {
     if (timer) clearInterval(timer);
@@ -271,45 +277,32 @@ document.addEventListener('DOMContentLoaded', () => {
         updateClock();
       } else {
         clearInterval(timer);
+        playAlarm();
       }
     }, 1000);
   });
 
-  document.getElementById('upload-btn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('file-upload');
-    const uploadBtn = document.getElementById('upload-btn');
 
-    if (!fileInput.files.length) {
-        alert('Please select a file to upload.');
-        return;
-    }
+function startCountdown(totalSeconds) {
+    const timerDisplay = document.querySelector('#clock-svg text');
+    const interval = setInterval(() => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-    // Add progress fill element to the button
-    const progressFill = document.createElement('div');
-    progressFill.classList.add('progress-fill');
-    uploadBtn.textContent = 'Uploading...';
-    uploadBtn.appendChild(progressFill);
-
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        // Simulate progress update
-        for (let i = 0; i <= 100; i++) {
-            await new Promise(resolve => setTimeout(resolve, 30)); // Simulate delay
-            progressFill.style.width = `${i}%`;
+        if (totalSeconds <= 0) {
+            clearInterval(interval);
+            playAlarm();
+        } else {
+            totalSeconds--;
         }
+    }, 1000);
+}
 
-        alert('Upload successful!');
-    } catch (error) {
-        alert(`Error: ${error.message}`);
-    } finally {
-        // Reset button after upload
-        uploadBtn.textContent = 'Upload';
-        progressFill.remove();
-    }
-});
+function playAlarm() {
+    const audio = new Audio('alarm.mp3'); // Ensure alarm.mp3 is in the correct directory
+    audio.play();
+}
 
   /* --------------- INIT ------------------- */
   fetchDueCard();
