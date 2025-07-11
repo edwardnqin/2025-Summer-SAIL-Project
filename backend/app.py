@@ -3,6 +3,7 @@ import json
 import datetime
 import pathlib
 import re
+import random
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -185,7 +186,41 @@ def generate_cards():
     _save(db)
     return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
-# ─── 7) GENERATE QUIZ ───────────────────────────────────────────────────
+# ─── 7) GET CARD ───────────────────────────────────────────────────
+@app.get("/get-card")
+def get_card():
+    db = _load()
+    cards = db.get("cards", [])
+    if not cards:
+        return jsonify(message="No cards available"), 404
+    return jsonify(random.choice(cards))  # Pick a random card
+
+# ─── 8) ANSWER CARD ───────────────────────────────────────────────────
+@app.post("/answer-card")
+def answer_card():
+    data = request.get_json(force=True)
+    card_id = data.get("cardId")
+    correct = data.get("correct")
+
+    if card_id is None or correct is None:
+        return jsonify(error="Missing 'cardId' or 'correct'"), 400
+
+    db = _load()
+    cards = db.get("cards", [])
+
+    # If correct, remove the card
+    if correct:
+        new_cards = [c for c in cards if c.get("id") != card_id]
+        if len(new_cards) == len(cards):
+            return jsonify(error="Card not found"), 404
+        db["cards"] = new_cards
+        _save(db)
+        return jsonify(message=f"Card {card_id} removed.")
+    else:
+        # Incorrect answer, keep the card
+        return jsonify(message="Card kept.")
+
+# ─── 9) GENERATE QUIZ ───────────────────────────────────────────────────
 @app.post("/generate-quiz")
 def generate_quiz():
     data = request.get_json(force=True)
