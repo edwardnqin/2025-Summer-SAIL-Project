@@ -17,14 +17,40 @@
     <div class="dashboard">
         <!-- Upload Section -->
         <section id="setup-area" class="card">
-            <h2>Upload &amp; Summarize</h2>
+        <h2>Upload &amp; Summarize</h2>
+
+        <!-- Add source selection -->
+        <label for="source-select">Choose source:</label>
+        <select id="source-select">
+            <option value="local">Local File</option>
+            <option value="drive">Google Drive</option>
+            <option value="backend">Backend JSON</option>
+        </select>
+
+        <!-- local input -->
+        <div class="source-panel" id="panel-local">
             <textarea id="text-input" placeholder="Paste your notes here..."></textarea>
             <input type="file" id="file-upload" />
-            <!-- New: File Name Display -->
             <span id="file-name-display"></span>
-            <button id="generate-btn">Upload</button>
-            <button id="summarize-btn">Summarize Notes</button>
+        </div>
+
+        <!-- Google Drive -->
+        <div class="source-panel hidden" id="panel-drive">
+            <button id="drive-picker-btn">Select from Google Drive</button>
+            <span id="drive-file-name"></span>
+        </div>
+
+        <!-- Backend JSON Loading -->
+        <div class="source-panel hidden" id="panel-backend">
+            <button id="load-json-btn">Load JSON from Server</button>
+            <span id="backend-status"></span>
+        </div>
+
+        <button id="generate-btn">Upload &amp; Generate Cards</button>
+        <button id="summarize-btn">Summarize Notes</button>
         </section>
+
+        
 
         <!-- Study Section -->
         <section id="study-area" class="card">

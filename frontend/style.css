@@ -290,3 +290,11 @@ button#upload-btn .progress-fill {
 #chat-section button {
   cursor: auto;
 }
+
+.source-panel {
+  margin: 1rem 0;
+}
+
+.hidden {
+  display: none !important;
+}

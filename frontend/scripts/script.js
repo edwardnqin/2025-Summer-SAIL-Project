@@ -16,6 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatSection     = qs('#chat-section');
   const statusMsg       = qs('#status-message');
 
+  const sourceSelect    = qs('#source-select');
+  const panelLocal      = qs('#panel-local');
+  const panelDrive      = qs('#panel-drive');
+  const panelBackend    = qs('#panel-backend');
+  const drivePickerBtn  = qs('#drive-picker-btn');
+  const driveFileName   = qs('#drive-file-name');
+  const loadJsonBtn     = qs('#load-json-btn');
+  const backendStatus   = qs('#backend-status');
+
   const textInput       = qs('#text-input');
   const fileUpload      = qs('#file-upload');
   const fileNameDisplay = qs('#file-name-display');
@@ -86,12 +95,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* --------------- NEW BACKEND CALLS ------ */
   async function uploadFileOrText() {
-    const txt  = textInput.value.trim();
-    const file = fileUpload.files[0];
-    if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
-
     const fd = new FormData();
-    txt ? fd.append('text_content', txt) : fd.append('file', file);
+    if (sourceSelect.value === 'local') {
+      const txt  = qs('#text-input').value.trim();
+      const file = fileUpload.files[0];
+      if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
+      if (txt) fd.append('text_content', txt);
+      else      fd.append('file', file);
+    } else if (sourceSelect.value === 'drive') {
+      if (!window.chosenDriveFile) {
+        setStatus('No Drive file selected.');
+        return false;
+      }
+      fd.append('file', window.chosenDriveFile);
+    } else { // backend
+      // We have already written the JSON to the textarea, reuse the local branch
+      const txt = qs('#text-input').value.trim();
+      if (!txt) { setStatus('No data loaded from backend.'); return false; }
+      fd.append('text_content', txt);
+    }
 
     const r = await fetch(`${API_URL}/upload`, { method:'POST', body: fd });
     const j = await r.json();
@@ -204,6 +226,46 @@ document.addEventListener('DOMContentLoaded', () => {
       setStatus(e.message);
     }
   };
+
+  // 切换来源时显示对应面板
+  sourceSelect.addEventListener('change', () => {
+    panelLocal.classList.toggle('hidden', sourceSelect.value !== 'local');
+    panelDrive.classList.toggle('hidden', sourceSelect.value !== 'drive');
+    panelBackend.classList.toggle('hidden', sourceSelect.value !== 'backend');
+  });
+
+  // Google Drive Picker（sample stub，need Google Picker API）
+  drivePickerBtn.addEventListener('click', async () => {
+    try {
+      // TODO: Use Google Picker API to open file selection dialog
+      const file = await pickFileFromDrive();  
+      driveFileName.textContent = file.name;
+      // store the file object globally for later upload
+      window.chosenDriveFile = file;
+    } catch (err) {
+      driveFileName.textContent = 'Drive picker error';
+      console.error(err);
+    }
+  });
+
+  // Load JSON from backend
+  loadJsonBtn.addEventListener('click', async () => {
+    backendStatus.textContent = 'Loading…';
+    try {
+      const res = await fetch(`${API_URL}/notes/json`);
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+      // Assume data.content contains the notes text
+      qs('#text-input').value = data.content;
+      backendStatus.textContent = 'Loaded!';
+      // Switch back to local panel for upload process
+      sourceSelect.value = 'local';
+      sourceSelect.dispatchEvent(new Event('change'));
+    } catch (err) {
+      backendStatus.textContent = 'Error loading JSON';
+      console.error(err);
+    }
+  });
 
   chatForm.onsubmit = async (e) => {
     e.preventDefault();
