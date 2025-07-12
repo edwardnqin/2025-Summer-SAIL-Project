@@ -212,15 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  summarizeBtn.addEventListener('click', async () => {
-    try {
-      setStatus('Summarizing…');
-      await fetchSummary();
-      setStatus('');
-    } catch (err) {
-      setStatus(err.message);
-    }
+  // summarizeBtn.addEventListener('click', async () => {
+  //   try {
+  //     setStatus('Summarizing…');
+  //     await fetchSummary();
+  //     setStatus('');
+  //   } catch (err) {
+  //     setStatus(err.message);
+  //   }
+  // });
+  summarizeBtn.addEventListener('click', () => {
+    window.location.href = 'summarize.html';
   });
+
 
   sourceSelect.addEventListener('change', () => {
     panelLocal.classList.toggle('hidden', sourceSelect.value !== 'local');
