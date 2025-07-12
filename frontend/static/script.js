@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
   /* DOM SELECTORS */
   const qs = sel => document.querySelector(sel);
 
+  const timerCircle   = qs('#clock-svg circle');
+  const radius        = timerCircle.r.baseVal.value;
+  const circumference = 2 * Math.PI * radius;
+  timerCircle.style.strokeDasharray  = circumference;
+  timerCircle.style.strokeDashoffset = circumference;
+
   const setupArea       = qs('#setup-area');
   const studyArea       = qs('#study-area');
   const generateBtn     = qs('#generate-btn');
@@ -52,6 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelTimerBtn  = qs('#cancel-timer-btn');
   const pauseTimerBtn = qs('#pause-timer-btn');
 
+  timerCircle.style.strokeDasharray  = circumference;
+  timerCircle.style.strokeDashoffset = circumference;
+
   /* STATE */
   let currentCard = null;
   let workTimer, breakTimer;
@@ -84,6 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
     timerDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+
+    // fraction of time remaining (0 → 1)
+    const progress = timeLeft / (25 * 60);  
+    // shrink the ring by offsetting the dash
+    timerCircle.style.strokeDashoffset = circumference * (1 - progress);
   }
 
   function formatTime(sec) {

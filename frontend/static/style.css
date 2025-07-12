@@ -186,6 +186,10 @@
     max-width: 320px;
     width: 100%;
   }
+
+  #clock-svg circle {
+    transition: stroke-dashoffset 0.5s linear;
+  }
   
   @media (max-width: 600px) {
     .container {
