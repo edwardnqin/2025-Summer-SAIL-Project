@@ -25,6 +25,11 @@ CORS(app)
 # ─── Simple JSON "DB" ──────────────────────────────────────────────────
 DB = "study_data.json"
 
+# Automatically delete JSON DB on every server start
+if os.path.exists(DB):
+    os.remove(DB)
+    print(f"{DB} deleted on server start.")
+
 def _load():
     # If file doesn't exist, return a complete default structure
     if not os.path.exists(DB):
@@ -83,25 +88,7 @@ def list_files():
     files = _load().get("files", [])
     return jsonify(files=[f["name"] for f in files])
 
-# ─── 3) DELETE FILE ────────────────────────────────────────────────────
-@app.post("/delete-file")
-def delete_file():
-    data = request.get_json(force=True)
-    filename = data.get("filename")
-    if not filename:
-        return jsonify(error="No filename provided"), 400
-
-    db = _load()
-    before = len(db["files"])
-    db["files"] = [f for f in db["files"] if f["name"] != filename]
-    _save(db)
-
-    after = len(db["files"])
-    if before == after:
-        return jsonify(error="File not found"), 404
-    return jsonify(message=f"Deleted {filename}")
-
-# ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
+# ─── 3) SUMMARIZE ──────────────────────────────────────────────────────
 @app.post("/summarize")
 def summarize():
     data = request.get_json(force=True)
@@ -145,7 +132,7 @@ def summarize():
 
     return jsonify(summary=summary)
 
-# ─── 5) ASK ────────────────────────────────────────────────────────────
+# ─── 4) ASK ────────────────────────────────────────────────────────────
 @app.post("/ask")
 def ask():
     data = request.get_json(force=True)
@@ -201,7 +188,7 @@ def ask():
     answer = response.choices[0].message.content.strip()
     return jsonify(answer=answer)
 
-# ─── 6) GENERATE FLASHCARDS ────────────────────────────────────────────
+# ─── 5) GENERATE FLASHCARDS ────────────────────────────────────────────
 @app.post("/generate-cards")
 def generate_cards():
     data = request.get_json(force=True)
@@ -250,7 +237,7 @@ def generate_cards():
     _save(db)
     return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
-# ─── 7) GET CARD ───────────────────────────────────────────────────
+# ─── 6) GET CARD ───────────────────────────────────────────────────
 @app.get("/get-card")
 def get_card():
     db = _load()
@@ -259,7 +246,7 @@ def get_card():
         return jsonify(message="No cards available"), 404
     return jsonify(random.choice(cards))  # Pick a random card
 
-# ─── 8) ANSWER CARD ───────────────────────────────────────────────────
+# ─── 7) ANSWER CARD ───────────────────────────────────────────────────
 @app.post("/answer-card")
 def answer_card():
     data = request.get_json(force=True)
@@ -284,7 +271,7 @@ def answer_card():
         # Incorrect answer, keep the card
         return jsonify(message="Card kept.")
 
-# ─── 9) GENERATE QUIZ ───────────────────────────────────────────────────
+# ─── 8) GENERATE QUIZ ───────────────────────────────────────────────────
 @app.post("/generate-quiz")
 def generate_quiz():
     data = request.get_json(force=True)
