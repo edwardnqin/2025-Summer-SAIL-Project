@@ -19,3 +19,6 @@ frontend/.next/
 # Application data
 study_data.json
 backend/study_data.json
+
+# macOS system file
+.DS_Store
