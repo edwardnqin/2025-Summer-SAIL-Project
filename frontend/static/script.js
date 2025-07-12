@@ -3,54 +3,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const qs = sel => document.querySelector(sel);
 
-  const timerCircle   = qs('#clock-svg circle');
-  const radius        = timerCircle.r.baseVal.value;
+  const timerCircle = qs('#clock-svg circle');
+  const radius = timerCircle.r.baseVal.value;
   const circumference = 2 * Math.PI * radius;
-  timerCircle.style.strokeDasharray  = circumference;
+  timerCircle.style.strokeDasharray = circumference;
   timerCircle.style.strokeDashoffset = circumference;
 
-  const setupArea       = qs('#setup-area');
-  const studyArea       = qs('#study-area');
-  const generateBtn     = qs('#generate-btn');
-  const summarizeBtn    = qs('#summarize-btn');
-  const chatForm        = qs('#chat-form');
-  const chatLog         = qs('#chat-log');
-  const chatSection     = qs('#chat-section');
-  const statusMsg       = qs('#status-message');
+  const setupArea = qs('#setup-area');
+  const studyArea = qs('#study-area');
+  const generateBtn = qs('#generate-btn');
+  const summarizeBtn = qs('#summarize-btn');
+  const chatForm = qs('#chat-form');
+  const chatLog = qs('#chat-log');
+  const chatSection = qs('#chat-section');
+  const statusMsg = qs('#status-message');
 
-  const sourceSelect    = qs('#source-select');
-  const panelLocal      = qs('#panel-local');
-  const panelDrive      = qs('#panel-drive');
-  const panelBackend    = qs('#panel-backend');
-  const drivePickerBtn  = qs('#drive-picker-btn');
-  const driveFileName   = qs('#drive-file-name');
-  const loadJsonBtn     = qs('#load-json-btn');
-  const backendStatus   = qs('#backend-status');
+  const sourceSelect = qs('#source-select');
+  const panelLocal = qs('#panel-local');
+  const panelDrive = qs('#panel-drive');
+  const panelBackend = qs('#panel-backend');
+  const drivePickerBtn = qs('#drive-picker-btn');
+  const driveFileName = qs('#drive-file-name');
+  const loadJsonBtn = qs('#load-json-btn');
+  const backendStatus = qs('#backend-status');
 
-  const fileUpload      = qs('#file-upload');
+  const fileUpload = qs('#file-upload');
   const fileNameDisplay = qs('#file-name-display');
-  const fileList        = qs('#file-list');
+  const fileList = qs('#file-list');
 
-  const questionText    = qs('#question-text');
-  const answerText      = qs('#answer-text');
-  const mcqOptions      = qs('#mcq-options');
+  const questionText = qs('#question-text');
+  const answerText = qs('#answer-text');
+  const mcqOptions = qs('#mcq-options');
 
-  const showAnswerBtn   = qs('#show-answer-btn');
-  const perfBtns        = qs('#performance-btns');
-  const cardFront       = qs('.card-front');
-  const cardBack        = qs('.card-back');
+  const showAnswerBtn = qs('#show-answer-btn');
+  const perfBtns = qs('#performance-btns');
+  const cardFront = qs('.card-front');
+  const cardBack = qs('.card-back');
 
-  const breakReminder   = qs('#break-reminder');
-  const resumeBtn       = qs('#resume-btn');
+  const breakReminder = qs('#break-reminder');
+  const resumeBtn = qs('#resume-btn');
 
-  const timerDisplay    = qs('#timer-display text');
-  const timerInput      = qs('#timer-input');
-  const setTimerBtn     = qs('#set-timer-btn');
-  const startTimerBtn   = qs('#start-timer-btn');
-  const timerModal      = qs('#timer-modal');
-  const saveTimerBtn    = qs('#save-timer-btn');
-  const cancelTimerBtn  = qs('#cancel-timer-btn');
-  const pauseTimerBtn   = qs('#pause-timer-btn');
+  const timerDisplay = qs('#timer-display text');
+  const timerInput = qs('#timer-input');
+  const setTimerBtn = qs('#set-timer-btn');
+  const startTimerBtn = qs('#start-timer-btn');
+  const timerModal = qs('#timer-modal');
+  const saveTimerBtn = qs('#save-timer-btn');
+  const cancelTimerBtn = qs('#cancel-timer-btn');
+  const pauseTimerBtn = qs('#pause-timer-btn');
 
   let currentCard = null;
   let workTimer, breakTimer;
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
     timerDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-    const progress = timeLeft / (25 * 60);  
+    const progress = timeLeft / (25 * 60);
     timerCircle.style.strokeDashoffset = circumference * (1 - progress);
   }
 
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fd.append('text_content', txt);
     }
 
-    const res = await fetch(`${API_URL}/upload`, { method:'POST', body: fd });
+    const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Upload failed');
     return true;
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function askModel(q) {
     const res = await fetch(`${API_URL}/ask`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: q })
     });
     const { answer, error } = await res.json();
@@ -166,15 +166,33 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleMcq(btn, opt, correct) {
     mcqOptions.querySelectorAll('.mcq-option').forEach(b => {
       b.disabled = true;
-      if (b.textContent === correct) b.classList.replace('secondary','primary');
+      if (b.textContent === correct) b.classList.replace('secondary', 'primary');
     });
     if (opt !== correct) btn.classList.add('incorrect');
     perfBtns.classList.remove('hidden');
   }
 
+  let cachedFiles = [];
+
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
-      fileNameDisplay.textContent = Array.from(fileUpload.files).map(f => f.name).join(', ');
+      const selectedFiles = Array.from(fileUpload.files);
+
+      const names = new Set(cachedFiles.map(f => f.name));
+      selectedFiles.forEach(f => {
+        if (!names.has(f.name)) cachedFiles.push(f);
+      });
+
+      const ul = document.createElement('ul');
+      ul.style.margin = '0';
+      ul.style.paddingLeft = '16px';
+      cachedFiles.forEach(file => {
+        const li = document.createElement('li');
+        li.textContent = file.name;
+        ul.appendChild(li);
+      });
+      fileNameDisplay.innerHTML = '';
+      fileNameDisplay.appendChild(ul);
     }
   });
 
@@ -184,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
       await uploadFileOrText();
       await displayUploadedFiles();
       const res = await fetch(`${API_URL}/generate-cards`, {
-        method:'POST',
-        headers: {'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filenames: [] })  // empty: generates from all
       });
       const json = await res.json();
@@ -259,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!e.target.matches('.perf-btn')) return;
     await fetch(`${API_URL}/update-card-performance`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cardId: currentCard.id,
         quality: e.target.dataset.quality
