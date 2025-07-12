@@ -57,7 +57,7 @@ body {
 }
 
 .status {
-    margin-top: calc(var(--space-lg) + 1px);
+    margin-top: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
     text-align: center;
     color: var(--color-muted);
