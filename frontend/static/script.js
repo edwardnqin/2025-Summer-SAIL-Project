@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadJsonBtn     = qs('#load-json-btn');
   const backendStatus   = qs('#backend-status');
 
-  const textInput       = qs('#text-input');
+  // const textInput       = qs('#text-input');
   const fileUpload      = qs('#file-upload');
   const fileNameDisplay = qs('#file-name-display');
 
@@ -96,11 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      const txt  = textInput.value.trim();
+      // const txt  = textInput.value.trim();
       const file = fileUpload.files[0];
-      if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
-      if (txt)  fd.append('text_content', txt);
-      else      fd.append('file', file);
+      // if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
+      // if (txt)  fd.append('text_content', txt);
+      // else      fd.append('file', file);
+      if (!file) { setStatus('please choose a file.'); return false; }
+      fd.append('file', file);
     } else if (sourceSelect.value === 'drive') {
       if (!window.chosenDriveFile) { setStatus('No Drive file selected.'); return false; }
       fd.append('file', window.chosenDriveFile);
