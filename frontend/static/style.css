@@ -193,4 +193,34 @@
       padding: calc(var(--space-md) + 1rem) var(--space-md);
     }
   }
-  
+
+  #chat-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  #chat-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #chat-section .card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  #chat-input {
+    resize: none;
+    height: 150px;
+    margin-top: var(--space-sm);
+  }
+
+  #chat-log {
+    resize: none;
+    flex: 1;
+    margin-top: var(--space-md);
+    min-height: 150px;
+    overflow-y: auto;
+  }
