@@ -32,39 +32,114 @@
     .toc a:hover {
       text-decoration: underline;
     }
+
+    .toc label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: normal;
+    }
+
+    .primary {
+      background-color: var(--color-primary);
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .primary:hover {
+      filter: brightness(0.9);
+    }
   </style>
 </head>
 <body>
   <nav class="top-nav"><h1>Wisebud Summary</h1></nav>
   <main class="summary-container">
-    <div class="toc" id="summary-toc"></div>
-    <div id="summary-content">Loading summary...</div>
+    <div class="toc" id="summary-toc">Loading files...</div>
+    <div id="summary-content"></div>
   </main>
+
   <script>
-    fetch("http://127.0.0.1:5001/list-summaries")
-      .then(res => res.json())
-      .then(data => {
-        if (!data.summaries.length) {
-          document.getElementById("summary-content").textContent = "No summaries found.";
+    const API_URL = 'http://127.0.0.1:5001';
+
+    async function listFiles() {
+      try {
+        const res = await fetch(`${API_URL}/list-files`);
+        const data = await res.json();
+
+        const tocDiv = document.getElementById("summary-toc");
+        tocDiv.innerHTML = "<strong>Select files to summarize:</strong><br>";
+
+        if (!data.files.length) {
+          tocDiv.innerHTML += "No files found.";
           return;
         }
 
-        const summary = data.summaries.at(-1).summary;
-        const contentDiv = document.getElementById("summary-content");
-        const tocDiv = document.getElementById("summary-toc");
-
-        contentDiv.innerHTML = summary
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
-
-        
-        const chapters = [...summary.matchAll(/\*\*(Chapter \d+:.*?)\*\*/g)];
-        chapters.forEach((match, i) => {
-          const anchor = `chapter-${i}`;
-          contentDiv.innerHTML = contentDiv.innerHTML.replace(match[0], `<a id="${anchor}"></a><h2>${match[1]}</h2>`);
-          tocDiv.innerHTML += `<a href="#${anchor}">${match[1]}</a>`;
+        data.files.forEach(filename => {
+          const label = document.createElement('label');
+          label.innerHTML = `<input type="checkbox" value="${filename}"><span>${filename}</span>`;
+          tocDiv.appendChild(label);
         });
+
+        const btn = document.createElement('button');
+        btn.textContent = "Generate Summary";
+        btn.className = "primary";
+        btn.onclick = summarizeFiles;
+        tocDiv.appendChild(btn);
+      } catch (error) {
+        document.getElementById("summary-toc").textContent = "Error loading file list.";
+        console.error("Failed to fetch files:", error);
+      }
+    }
+
+    async function summarizeFiles() {
+      const checkboxes = document.querySelectorAll('#summary-toc input[type="checkbox"]:checked');
+      const filenames = Array.from(checkboxes).map(cb => cb.value);
+
+      if (!filenames.length) {
+        alert("Please select at least one file.");
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/summarize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filenames })
       });
+
+      const data = await res.json();
+      const contentDiv = document.getElementById("summary-content");
+
+      if (data.error) {
+        contentDiv.textContent = `Error: ${data.error}`;
+        return;
+      }
+
+      const summary = data.summary;
+      contentDiv.innerHTML = summary
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      // Table of contents update
+      const chapters = [...summary.matchAll(/\*\*(Chapter \d+:.*?)\*\*/g)];
+      const tocDiv = document.getElementById("summary-toc");
+      tocDiv.innerHTML = "<strong>Table of Contents</strong><br>";
+      chapters.forEach((match, i) => {
+        const anchor = `chapter-${i}`;
+        contentDiv.innerHTML = contentDiv.innerHTML.replace(match[0], `<a id="${anchor}"></a><h2>${match[1]}</h2>`);
+        const link = document.createElement('a');
+        link.href = `#${anchor}`;
+        link.textContent = match[1];
+        tocDiv.appendChild(link);
+        tocDiv.appendChild(document.createElement('br'));
+      });
+    }
+
+    listFiles();
   </script>
 </body>
 </html>
