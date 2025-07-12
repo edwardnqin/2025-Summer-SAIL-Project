@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const timerModal      = qs('#timer-modal');
   const saveTimerBtn    = qs('#save-timer-btn');
   const cancelTimerBtn  = qs('#cancel-timer-btn');
+  const pauseTimerBtn = qs('#pause-timer-btn');
 
   /* STATE */
   let currentCard = null;
@@ -324,6 +325,15 @@ document.addEventListener('DOMContentLoaded', () => {
         playAlarm();
       }
     }, 1000);
+  });
+
+  // Pause the running timer
+  pauseTimerBtn.addEventListener('click', () => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    setStatus('Timer paused');
+    }
   });
 
   function playAlarm() {
