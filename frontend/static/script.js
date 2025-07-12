@@ -73,13 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  let cachedFiles = [];
+
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      const files = fileUpload.files;;
-      if (!files.length) { setStatus('please choose a file.'); return false; }
-      for (const file of files) {
-        fd.append('files', file);  // append each file with the same key
+      if (!cachedFiles.length) { setStatus('Please choose at least one file.'); return false; }
+      for (const file of cachedFiles) {
+        fd.append('files', file);
       }
     } else if (sourceSelect.value === 'drive') {
       if (!window.chosenDriveFile) { setStatus('No Drive file selected.'); return false; }
@@ -171,8 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (opt !== correct) btn.classList.add('incorrect');
     perfBtns.classList.remove('hidden');
   }
-
-  let cachedFiles = [];
 
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
