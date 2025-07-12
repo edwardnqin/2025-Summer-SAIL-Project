@@ -76,9 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      const file = fileUpload.files[0];
-      if (!file) { setStatus('please choose a file.'); return false; }
-      fd.append('files', file);  // note: server expects "files" list
+      const files = fileUpload.files;;
+      if (!files.length) { setStatus('please choose a file.'); return false; }
+      for (const file of files) {
+        fd.append('files', file);  // append each file with the same key
+      }
     } else if (sourceSelect.value === 'drive') {
       if (!window.chosenDriveFile) { setStatus('No Drive file selected.'); return false; }
       fd.append('files', window.chosenDriveFile);
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
-      fileNameDisplay.textContent = fileUpload.files[0].name;
+      fileNameDisplay.textContent = Array.from(fileUpload.files).map(f => f.name).join(', ');
     }
   });
 
