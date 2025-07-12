@@ -59,28 +59,33 @@ def _save(data):
 # ─── 1) UPLOAD ─────────────────────────────────────────────────────────
 @app.post("/upload")
 def upload():
-    f = request.files.get("file")
-    if not f:
-        return jsonify(error="No file"), 400
-
-    name = pathlib.Path(f.filename).name
-    data = f.read()
-
-    if name.lower().endswith(".pdf"):
-        text = pdf_to_text(data)
-    elif name.lower().endswith((".txt", ".md")):
-        text = data.decode("utf-8", errors="ignore")
-    elif name.lower().endswith(".docx"):
-        text = docx_to_text(data)
-    elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
-        text = image_to_base64(data)
-    else:
-        return jsonify(error="Unsupported file type"), 415
+    uploaded_files = request.files.getlist("files")
+    if not uploaded_files:
+        return jsonify(error="No files provided"), 400
 
     db = _load()
-    db["files"].append({"name": name, "text": text})
+    added = 0
+
+    for f in uploaded_files:
+        name = pathlib.Path(f.filename).name
+        data = f.read()
+
+        if name.lower().endswith(".pdf"):
+            text = pdf_to_text(data)
+        elif name.lower().endswith((".txt", ".md")):
+            text = data.decode("utf-8", errors="ignore")
+        elif name.lower().endswith(".docx"):
+            text = docx_to_text(data)
+        elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
+            text = image_to_base64(data)
+        else:
+            continue  # skip unsupported files
+
+        db["files"].append({"name": name, "text": text})
+        added += 1
+
     _save(db)
-    return jsonify(message=f"{name} uploaded.", total_files=len(db["files"]))
+    return jsonify(message=f"{added} files uploaded.", total_files=len(db["files"]))
 
 # ─── 2) LIST FILES ─────────────────────────────────────────────────────
 @app.get("/list-files")
