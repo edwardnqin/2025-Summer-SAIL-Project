@@ -1,12 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  /* CONFIG */
   const API_URL = 'http://127.0.0.1:5001';
 
-  // Durations for Pomodoro-style sessions
-  const WORK_SESSION_DURATION  = 20 * 60 * 1000;
-  const BREAK_SESSION_DURATION = 10 * 60 * 1000;
-
-  /* DOM SELECTORS */
   const qs = sel => document.querySelector(sel);
 
   const timerCircle   = qs('#clock-svg circle');
@@ -33,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadJsonBtn     = qs('#load-json-btn');
   const backendStatus   = qs('#backend-status');
 
-  // const textInput       = qs('#text-input');
   const fileUpload      = qs('#file-upload');
   const fileNameDisplay = qs('#file-name-display');
+  const fileList        = qs('#file-list');
 
   const questionText    = qs('#question-text');
   const answerText      = qs('#answer-text');
@@ -56,47 +50,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const timerModal      = qs('#timer-modal');
   const saveTimerBtn    = qs('#save-timer-btn');
   const cancelTimerBtn  = qs('#cancel-timer-btn');
-  const pauseTimerBtn = qs('#pause-timer-btn');
+  const pauseTimerBtn   = qs('#pause-timer-btn');
 
-  timerCircle.style.strokeDasharray  = circumference;
-  timerCircle.style.strokeDashoffset = circumference;
-
-  /* STATE */
   let currentCard = null;
   let workTimer, breakTimer;
   let timeLeft = 25 * 60;
   let timerInterval = null;
 
-  /* HELPERS */
   const setStatus = msg => statusMsg.textContent = msg;
-
-  function startWorkTimer() {
-    clearTimeout(workTimer);
-    clearTimeout(breakTimer);
-
-    workTimer = setTimeout(() => {
-      // hide study, show break overlay
-      studyArea.classList.add('hidden');
-      breakReminder.classList.remove('hidden');
-
-      // auto-resume after break
-      breakTimer = setTimeout(() => {
-        breakReminder.classList.add('hidden');
-        studyArea.classList.remove('hidden');
-        startWorkTimer();
-      }, BREAK_SESSION_DURATION);
-
-    }, WORK_SESSION_DURATION);
-  }
 
   function updateClock() {
     const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
     timerDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-
-    // fraction of time remaining (0 → 1)
     const progress = timeLeft / (25 * 60);  
-    // shrink the ring by offsetting the dash
     timerCircle.style.strokeDashoffset = circumference * (1 - progress);
   }
 
@@ -106,20 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  /* BACKEND CALLS */
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      // const txt  = textInput.value.trim();
       const file = fileUpload.files[0];
-      // if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
-      // if (txt)  fd.append('text_content', txt);
-      // else      fd.append('file', file);
       if (!file) { setStatus('please choose a file.'); return false; }
-      fd.append('file', file);
+      fd.append('files', file);  // note: server expects "files" list
     } else if (sourceSelect.value === 'drive') {
       if (!window.chosenDriveFile) { setStatus('No Drive file selected.'); return false; }
-      fd.append('file', window.chosenDriveFile);
+      fd.append('files', window.chosenDriveFile);
     } else {
       const txt = textInput.value.trim();
       if (!txt) { setStatus('No data loaded from backend.'); return false; }
@@ -132,11 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  async function fetchSummary() {
-    const res = await fetch(`${API_URL}/summarize`);
-    const { summary, error } = await res.json();
-    if (error) throw new Error(error);
-    qs('#summary-box').textContent = summary;
+  async function displayUploadedFiles() {
+    try {
+      const res = await fetch(`${API_URL}/list-files`);
+      const data = await res.json();
+      fileList.innerHTML = '';
+      data.files.forEach(name => {
+        const li = document.createElement('li');
+        li.textContent = name;
+        fileList.appendChild(li);
+      });
+    } catch (err) {
+      console.error('Error loading files:', err);
+    }
   }
 
   async function askModel(q) {
@@ -150,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return answer;
   }
 
-  /* FLASHCARD LOGIC */
   async function fetchDueCard() {
     setStatus('Loading next card…');
     const res = await fetch(`${API_URL}/get-due-card`);
@@ -168,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setupArea.classList.add('hidden');
       studyArea.classList.remove('hidden');
       setStatus('');
-      startWorkTimer();
     }
   }
 
@@ -202,12 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
     perfBtns.classList.remove('hidden');
   }
 
-  /* EVENT BINDINGS */
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
       fileNameDisplay.textContent = fileUpload.files[0].name;
-      textInput.value = '';
-      textInput.disabled = true;
     }
   });
 
@@ -215,7 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setStatus('Uploading & generating cards…');
       await uploadFileOrText();
-      const res = await fetch(`${API_URL}/generate-cards`, { method:'POST' });
+      await displayUploadedFiles();
+      const res = await fetch(`${API_URL}/generate-cards`, {
+        method:'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ filenames: [] })  // empty: generates from all
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
       setStatus(json.message);
@@ -226,19 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // summarizeBtn.addEventListener('click', async () => {
-  //   try {
-  //     setStatus('Summarizing…');
-  //     await fetchSummary();
-  //     setStatus('');
-  //   } catch (err) {
-  //     setStatus(err.message);
-  //   }
-  // });
   summarizeBtn.addEventListener('click', () => {
     window.location.href = 'summarize.html';
   });
-
 
   sourceSelect.addEventListener('change', () => {
     panelLocal.classList.toggle('hidden', sourceSelect.value !== 'local');
@@ -248,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   drivePickerBtn.addEventListener('click', async () => {
     try {
-      // TODO: integrate Google Picker
       const file = await pickFileFromDrive();
       driveFileName.textContent = file.name;
       window.chosenDriveFile = file;
@@ -310,10 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
   resumeBtn.addEventListener('click', () => {
     breakReminder.classList.add('hidden');
     studyArea.classList.remove('hidden');
-    startWorkTimer();
   });
 
-  /* TIMER MODAL LOGIC */
   setTimerBtn.addEventListener('click', () => {
     timerModal.classList.remove('hidden');
     timerInput.value = formatTime(timeLeft);
@@ -347,12 +304,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
 
-  // Pause the running timer
   pauseTimerBtn.addEventListener('click', () => {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    setStatus('Timer paused');
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      setStatus('Timer paused');
     }
   });
 
@@ -361,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.play();
   }
 
-  /* INIT */
+  // INIT
+  displayUploadedFiles();
   fetchDueCard();
   updateClock();
 });

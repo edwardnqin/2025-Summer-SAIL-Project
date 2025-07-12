@@ -26,7 +26,6 @@
         </select>
 
         <div class="source-panel" id="panel-local">
-          <!-- <textarea id="text-input" placeholder="Paste your notes here..."></textarea> -->
           <input type="file" id="file-upload" />
           <span id="file-name-display"></span>
         </div>
@@ -39,6 +38,12 @@
         <div class="source-panel hidden" id="panel-backend">
           <button id="load-json-btn">Load JSON from Server</button>
           <span id="backend-status"></span>
+        </div>
+
+        <!-- Uploaded files list -->
+        <div id="uploaded-files" class="uploaded-files">
+          <strong>Uploaded Files:</strong>
+          <ul id="file-list"></ul>
         </div>
       </div>
       <div class="card-footer">
