@@ -85,8 +85,10 @@ def upload():
 # ─── 2) LIST FILES ─────────────────────────────────────────────────────
 @app.get("/list-files")
 def list_files():
-    files = _load().get("files", [])
-    return jsonify(files=[f["name"] for f in files])
+    db = _load()
+    file_names = [f["name"] for f in db.get("files", [])]
+    unique_file_names = sorted(set(file_names))  # optional: sorted for consistent order
+    return jsonify(files=unique_file_names)
 
 # ─── 3) SUMMARIZE ──────────────────────────────────────────────────────
 @app.post("/summarize")
