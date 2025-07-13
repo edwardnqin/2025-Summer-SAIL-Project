@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wisebud - Study Assistant</title>
   <link rel="stylesheet" href="../static/style.css" />
 </head>
+
 <body>
   <nav class="top-nav">
     <h1>Wisebud</h1>
@@ -63,6 +65,7 @@
       </div>
     </section>
 
+
     <!-- Chat -->
     <section id="chat-section" class="card">
       <div class="card-header">Chat</div>
@@ -95,7 +98,7 @@
       <div id="timer-modal" class="modal hidden">
         <div class="modal-content">
           <h3>Set Timer</h3>
-          <input type="text" id="timer-input" placeholder="Enter time (mm:ss)" />
+          <input type="text" id="timer-input" placeholder="Enter time (hh:mm:ss)" pattern="^\d{1,2}:\d{2}:\d{2}$" />
           <button id="save-timer-btn" class="primary">Save</button>
           <button id="cancel-timer-btn" class="secondary">Cancel</button>
         </div>
@@ -111,4 +114,5 @@
 
   <script src="../static/script.js"></script>
 </body>
+
 </html>

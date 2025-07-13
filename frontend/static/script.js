@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const breakReminder = qs('#break-reminder');
   const resumeBtn = qs('#resume-btn');
 
-  const timerDisplay = qs('#timer-display text');
+  const timerDisplay = qs('#clock-svg text');
   const timerInput = qs('#timer-input');
   const setTimerBtn = qs('#set-timer-btn');
   const startTimerBtn = qs('#start-timer-btn');
@@ -58,22 +58,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentCard = null;
   let workTimer, breakTimer;
   let timeLeft = 25 * 60;
+  let initialTime = timeLeft;    // record the full session length
   let timerInterval = null;
 
   const setStatus = msg => statusMsg.textContent = msg;
 
   function updateClock() {
-    const m = Math.floor(timeLeft / 60);
-    const s = timeLeft % 60;
-    timerDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-    const progress = timeLeft / (25 * 60);
+    // show hh:mm:ss
+    timerDisplay.textContent = formatTime(timeLeft);
+  
+    // progress against the full initialTime
+    const progress = timeLeft / initialTime;
     timerCircle.style.strokeDashoffset = circumference * (1 - progress);
   }
 
   function formatTime(sec) {
-    const m = Math.floor(sec / 60);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${h.toString().padStart(2,'0')}:${m
+      .toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
   }
 
   let cachedFiles = [];
@@ -325,14 +329,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   saveTimerBtn.addEventListener('click', () => {
-    const [m, s] = timerInput.value.split(':').map(Number);
-    if (!isNaN(m) && !isNaN(s)) {
-      timeLeft = m * 60 + s;
-      updateClock();
-      timerModal.classList.add('hidden');
-    } else {
-      alert('Use mm:ss format');
+    // Split on “:” into [hh, mm, ss]
+    const parts = timerInput.value.split(':').map(Number);
+  
+    // Only accept exactly three numbers
+    if (parts.length === 3) {
+      const [h, m, s] = parts;
+  
+      // Validate ranges: mm and ss must be 0–59, h ≥ 0
+      if (
+        !isNaN(h) && h >= 0 &&
+        !isNaN(m) && m >= 0 && m < 60 &&
+        !isNaN(s) && s >= 0 && s < 60
+      ) {
+        // Convert to seconds and reset baseline
+        timeLeft    = h * 3600 + m * 60 + s;
+        initialTime = timeLeft;
+  
+        // Update the display and close modal
+        updateClock();
+        timerModal.classList.add('hidden');
+        return;
+      }
     }
+  
+    // Fallback on invalid input
+    alert('Please enter time as hh:mm:ss, with 0≤mm,ss<60.');
   });
 
   cancelTimerBtn.addEventListener('click', () => {
