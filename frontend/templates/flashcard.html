@@ -1,11 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en">">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wisebud - Flashcards</title>
-    <link rel="stylesheet" href="../static/style.css" />
+    <link rel="stylesheet" href="../static/quiz.css" />
+    <style>
+        #card-container {
+            width: 320px;
+            height: 220px;
+            perspective: 800px;
+            margin-bottom: 1rem;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+
 </head>
 
 <body>
@@ -22,23 +64,46 @@
             </div>
         </section>
 
-        <!-- Flashcard interface -->
-        <section id="study-area" class="card">
+        <!-- Flashcard interface (always visible) -->
+        <section id="flashcard-section" class="card quiz-interface">
             <div class="card-header">Study</div>
             <div class="card-content">
-                <div id="card-container">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <p id="question-text">Flashcard question or quiz will appear here</p>
-                            <div id="mcq-options"></div>
+                <!-- Flashcard root: scope CSS/JS under here -->
+                <div id="flashcard-area">
+
+                    <!-- Card container with 3D flip support -->
+                    <div id="card-container">
+                        <div class="card-inner">
+
+                            <!-- FRONT side: question (and MCQ options if any) -->
+                            <div class="card-front">
+                                <p id="question-text">
+                                    Flashcard question or quiz will appear here
+                                </p>
+                                <div id="mcq-options"><!-- Inject multiple-choice options here --></div>
+                            </div>
+
+                            <!-- BACK side: answer -->
+                            <div class="card-back">
+                                <p id="answer-text">Answer will appear here</p>
+                            </div>
+
                         </div>
                     </div>
+
+                    <!-- “Show Answer” button -->
+                    <button id="show-answer-btn" class="primary">
+                        Show Answer
+                    </button>
+
+                    <!-- Performance buttons: hidden until after “Show Answer” -->
+                    <div id="performance-btns" class="hidden">
+                        <button data-rating="1">Hard</button>
+                        <button data-rating="2">Medium</button>
+                        <button data-rating="3">Easy</button>
+                    </div>
+
                 </div>
-                <button id="show-answer-btn" class="primary">Show Answer</button>
-                <div id="answer-box" class="card-back hidden">
-                    <p id="answer-text">Answer will appear here</p>
-                </div>
-                <div id="performance-btns" class="hidden"></div>
             </div>
         </section>
     </main>

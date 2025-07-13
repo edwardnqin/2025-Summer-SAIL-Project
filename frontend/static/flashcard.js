@@ -54,6 +54,10 @@ async function generateCards() {
     const json = await res.json();
     if (!res.ok) return alert(json.error || 'Generation failed.');
 
+    document.getElementById('flashcard-section')?.classList.remove('hidden');
+    document.getElementById('file-select-section')?.classList.add('hidden');
+
+
     fetchNextCard();
 }
 
