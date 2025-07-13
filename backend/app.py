@@ -327,6 +327,22 @@ def generate_quiz():
 
     return jsonify(questions=questions)
 
+# ─── 9) DELETE FILE ─────────────────────────────────────────────────────
+@app.post("/delete-file")
+def delete_file():
+    data = request.get_json(force=True)
+    filename = data.get("filename")
+    if not filename:
+        return jsonify(error="Missing 'filename'"), 400
+
+    db = _load()
+    original_len = len(db["files"])
+    db["files"] = [f for f in db["files"] if f["name"] != filename]
+    removed_count = original_len - len(db["files"])
+    _save(db)
+
+    return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
+
 # ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(port=5001, debug=True)

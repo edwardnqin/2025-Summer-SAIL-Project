@@ -105,6 +105,24 @@ document.addEventListener('DOMContentLoaded', () => {
       data.files.forEach(name => {
         const li = document.createElement('li');
         li.textContent = name;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '❌';
+        delBtn.className = 'secondary delete-btn';
+        delBtn.onclick = async () => {
+          const confirmDel = confirm(`Delete all '${name}'?`);
+          if (!confirmDel) return;
+          const res = await fetch(`${API_URL}/delete-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: name })
+          });
+          const msg = await res.json();
+          setStatus(msg.message || 'Deleted.');
+          await displayUploadedFiles();
+        };
+
+        li.appendChild(delBtn);
         fileList.appendChild(li);
       });
     } catch (err) {
