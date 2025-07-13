@@ -17,9 +17,26 @@
       white-space: pre-wrap;
     }
 
+    /* ensure the list container picks up these rules */
     .toc {
       margin-bottom: 1rem;
       font-weight: bold;
+    }
+
+    .toc label {
+      display: flex;
+      align-items: center;    /* vertical centering */
+      gap: 8px;                /* space between box & text */
+      margin-bottom: 6px;
+      font-weight: normal;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .toc input[type="checkbox"] {
+      margin: 0;               /* remove default spacing */
+      vertical-align: middle;  /* extra insurance */
+      accent-color: var(--color-primary);
     }
 
     .toc a {
@@ -28,22 +45,8 @@
       display: block;
       margin-bottom: 4px;
     }
-
     .toc a:hover {
       text-decoration: underline;
-    }
-
-    .toc label {
-      display: flex;
-      align-items: start;
-      gap: 8px;
-      margin-bottom: 6px;
-      font-weight: normal;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    .toc input[type="checkbox"] {
-      margin-right: 3px;
     }
 
     .primary {
@@ -55,7 +58,6 @@
       cursor: pointer;
       margin-top: 10px;
     }
-
     .primary:hover {
       filter: brightness(0.9);
     }
@@ -64,7 +66,6 @@
       margin-top: 1.5rem;
       color: var(--color-primary);
     }
-
   </style>
 </head>
 <body>
@@ -72,7 +73,9 @@
   <main class="container" style="grid-template-columns: 300px 1fr; align-items: start;">
     <section class="card" style="min-width: 280px;">
       <div class="card-header">Summary Table of Contents</div>
-      <div class="card-content" id="summary-toc">Loading files...</div>
+
+      <!-- ADDED class="toc" here so the CSS applies -->
+      <div class="card-content toc" id="summary-toc">Loading files...</div>
     </section>
 
     <section class="card" style="width: 100%; height: calc(100vh - 120px); overflow-y: auto;">
@@ -80,7 +83,6 @@
       <div class="card-content" id="summary-content" style="white-space: pre-wrap;"></div>
     </section>
   </main>
-
 
   <script>
     const API_URL = 'http://127.0.0.1:5001';
@@ -100,7 +102,11 @@
 
         data.files.forEach(filename => {
           const label = document.createElement('label');
-          label.innerHTML = `<input type="checkbox" value="${filename}"><span>${filename}</span>`;
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = filename;
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(filename));
           tocDiv.appendChild(label);
         });
 
@@ -116,20 +122,15 @@
     }
 
     async function summarizeFiles() {
-      const checkboxes = document.querySelectorAll('#summary-toc input[type="checkbox"]:checked');
-      const filenames = Array.from(checkboxes).map(cb => cb.value);
-
-      if (!filenames.length) {
-        alert("Please select at least one file.");
-        return;
-      }
+      const checked = document.querySelectorAll('#summary-toc input:checked');
+      const filenames = Array.from(checked).map(cb => cb.value);
+      if (!filenames.length) return alert("Please select at least one file.");
 
       const res = await fetch(`${API_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filenames })
       });
-
       const data = await res.json();
       const contentDiv = document.getElementById("summary-content");
 
@@ -143,13 +144,16 @@
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 
-      // Table of contents update
+      // rebuild TOC with anchors
       const chapters = [...summary.matchAll(/\*\*(Chapter \d+:.*?)\*\*/g)];
       const tocDiv = document.getElementById("summary-toc");
       tocDiv.innerHTML = "<strong>Table of Contents</strong><br>";
       chapters.forEach((match, i) => {
         const anchor = `chapter-${i}`;
-        contentDiv.innerHTML = contentDiv.innerHTML.replace(match[0], `<a id="${anchor}"></a><h2>${match[1]}</h2>`);
+        contentDiv.innerHTML = contentDiv.innerHTML.replace(
+          match[0],
+          `<a id="${anchor}"></a><h2>${match[1]}</h2>`
+        );
         const link = document.createElement('a');
         link.href = `#${anchor}`;
         link.textContent = match[1];
