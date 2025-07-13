@@ -39,6 +39,7 @@ async function loadFiles() {
   const res = await fetch(`${API_URL}/list-files`);
   const data = await res.json();
 
+  qs('#quiz-file-status')?.remove();
   if (!data.files.length) {
     fileListDiv.textContent = 'No files found.';
     return;
