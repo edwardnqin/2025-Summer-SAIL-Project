@@ -5,7 +5,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Wisebud - Summary</title>
+
+  <!-- Global styles -->
   <link rel="stylesheet" href="../static/style.css" />
+
+  <!-- Override to shrink-wrap checkboxes, align them, and keep filenames unbold -->
+  <style>
+    .toc {
+      margin-bottom: 1rem;
+      /* font-weight removed so children default to normal */
+    }
+    .toc label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      font-weight: normal;    /* ensure filenames are not bold */
+    }
+    .toc input[type="checkbox"] {
+      width: auto;
+      padding: 0;
+      margin: 0;
+      vertical-align: middle;
+      accent-color: var(--color-primary);
+    }
+  </style>
+
+  <!-- rest of your summary-specific CSS -->
   <style>
     .summary-container {
       max-width: 800px;
@@ -15,28 +42,6 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
       white-space: pre-wrap;
-    }
-
-    /* ensure the list container picks up these rules */
-    .toc {
-      margin-bottom: 1rem;
-      font-weight: bold;
-    }
-
-    .toc label {
-      display: flex;
-      align-items: center;    /* vertical centering */
-      gap: 8px;                /* space between box & text */
-      margin-bottom: 6px;
-      font-weight: normal;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      cursor: pointer;
-    }
-    .toc input[type="checkbox"] {
-      margin: 0;               /* remove default spacing */
-      vertical-align: middle;  /* extra insurance */
-      accent-color: var(--color-primary);
     }
 
     .toc a {
@@ -73,8 +78,6 @@
   <main class="container" style="grid-template-columns: 300px 1fr; align-items: start;">
     <section class="card" style="min-width: 280px;">
       <div class="card-header">Summary Table of Contents</div>
-
-      <!-- ADDED class="toc" here so the CSS applies -->
       <div class="card-content toc" id="summary-toc">Loading files...</div>
     </section>
 
@@ -101,13 +104,15 @@
         }
 
         data.files.forEach(filename => {
-          const label = document.createElement('label');
+          const labelEl = document.createElement('label');
+
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.value = filename;
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(filename));
-          tocDiv.appendChild(label);
+
+          labelEl.appendChild(checkbox);
+          labelEl.appendChild(document.createTextNode(filename));
+          tocDiv.appendChild(labelEl);
         });
 
         const btn = document.createElement('button');
@@ -115,6 +120,7 @@
         btn.className = "primary";
         btn.onclick = summarizeFiles;
         tocDiv.appendChild(btn);
+
       } catch (error) {
         document.getElementById("summary-toc").textContent = "Error loading file list.";
         console.error("Failed to fetch files:", error);
@@ -162,6 +168,7 @@
       });
     }
 
+    // initialize on load
     listFiles();
   </script>
 </body>
