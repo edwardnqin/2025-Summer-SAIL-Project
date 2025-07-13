@@ -6,48 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wisebud - Flashcards</title>
     <link rel="stylesheet" href="../static/quiz.css" />
-    <style>
-        #card-container {
-            width: 320px;
-            height: 220px;
-            perspective: 800px;
-            margin-bottom: 1rem;
-        }
-
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.5s ease-in-out;
-            transform-style: preserve-3d;
-        }
-
-        .card-inner.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-front,
-        .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            background: #fff;
-            border: 2px solid #ddd;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-        }
-
-        .card-back {
-            transform: rotateY(180deg);
-        }
-    </style>
-
+    <link rel="stylesheet" href="../static/flashcard.css" />
+    <link rel="stylesheet" href="../static/style.css" />
 </head>
 
 <body>
