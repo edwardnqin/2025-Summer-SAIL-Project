@@ -4,59 +4,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wisebud - Flashcards</title>
-  <link rel="stylesheet" href="../static/quiz.css" />
+  <title>Wisebud - Study Assistant</title>
+  <link rel="stylesheet" href="../static/style.css" />
 </head>
 
 <body>
   <nav class="top-nav">
-    <h1>Wisebud Flashcards</h1>
+    <h1>Wisebud</h1>
   </nav>
 
-  <main class="quiz-container">
-    <!-- File selection area -->
-    <section class="card quiz-files" id="file-select-section">
-      <div class="card-header">Select Files for Flashcards</div>
-      <div class="card-content" id="flashcard-file-list">
-        <div id="flashcard-file-status">Loading files...</div>
+  <div id="status-message" class="status"></div>
+
+  <main class="container">
+    <!-- Upload & Summarize -->
+    <section id="setup-area" class="card">
+      <div class="card-header">Upload &amp; Summarize</div>
+      <div class="card-content">
+        <label for="source-select">Choose source:</label>
+        <select id="source-select">
+          <option value="local">Local File</option>
+          <option value="drive">Google Drive</option>
+          <option value="backend">Backend JSON</option>
+        </select>
+
+        <div class="source-panel" id="panel-local">
+          <input type="file" id="file-upload" multiple />
+        </div>
+
+        <div class="source-panel hidden" id="panel-drive">
+          <button id="drive-picker-btn">Select from Google Drive</button>
+          <span id="drive-file-name"></span>
+        </div>
+
+        <div class="source-panel hidden" id="panel-backend">
+          <button id="load-json-btn">Load JSON from Server</button>
+          <span id="backend-status"></span>
+        </div>
+
+        <!-- Uploaded files list -->
+        <div id="uploaded-files" class="uploaded-files">
+          <strong>Uploaded Files:</strong>
+          <ul id="file-list"></ul>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button id="generate-btn" class="primary">Upload &amp; Generate Cards</button>
+        <button id="summarize-btn" class="secondary">Summarize Notes</button>
       </div>
     </section>
 
-    <!-- Flashcard interface (always visible) -->
-    <section id="flashcard-section" class="card quiz-interface">
+    <!-- Study -->
+    <section class="card">
       <div class="card-header">Study</div>
       <div class="card-content">
-        <div id="flashcard-area">
-          <!-- Card container with 3D flip support -->
-          <div id="card-container">
-            <div class="card-inner">
-              <!-- FRONT side: question (and MCQ options if any) -->
-              <div class="card-front">
-                <p id="question-text">Flashcard question or quiz will appear here</p>
-                <div id="mcq-options"></div>
-              </div>
-              <!-- BACK side: answer -->
-              <div class="card-back">
-                <p id="answer-text">Answer will appear here</p>
-              </div>
-            </div>
-          </div>
+        <p>Practice and test yourself using flashcards and quizzes based on your uploaded notes.</p>
+      </div>
+      <div class="card-footer">
+        <button class="primary" onclick="window.location.href='flashcard.html'">Study Flashcards</button>
+        <button class="secondary" onclick="window.location.href='quiz.html'">Take a Quiz</button>
+      </div>
+    </section>
 
-          <!-- “Show Answer” button -->
-          <button id="show-answer-btn" class="primary">Show Answer</button>
 
-          <!-- Performance buttons -->
-          <div id="performance-btns" class="hidden">
-            <button data-rating="1">Hard</button>
-            <button data-rating="2">Medium</button>
-            <button data-rating="3">Easy</button>
-          </div>
+    <!-- Chat -->
+    <section id="chat-section" class="card">
+      <div class="card-header">Chat</div>
+      <div class="card-content">
+        <form id="chat-form">
+          <textarea id="chat-input" placeholder="Type a message..."></textarea>
+          <button type="submit" class="primary">Ask</button>
+        </form>
+        <textarea id="chat-log" readonly></textarea>
+      </div>
+    </section>
+
+    <!-- Focus Timer -->
+    <section id="focus-section" class="card">
+      <div class="card-header">Focus Timer</div>
+      <div class="card-content">
+        <div id="timer-display">
+          <svg id="clock-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" stroke="var(--color-primary)" stroke-width="5" fill="none"></circle>
+            <text x="50" y="55" text-anchor="middle" font-size="20" fill="var(--color-primary)">25:00</text>
+          </svg>
+        </div>
+        <div class="timer-buttons">
+          <button id="set-timer-btn" class="secondary">Set Timer</button>
+          <button id="start-timer-btn" class="primary">Start</button>
+          <button id="pause-timer-btn" class="secondary">Pause</button>
+        </div>
+      </div>
+
+      <div id="timer-modal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Set Timer</h3>
+          <input type="text" id="timer-input" placeholder="Enter time (hh:mm:ss)" pattern="^\d{1,2}:\d{2}:\d{2}$" />
+          <button id="save-timer-btn" class="primary">Save</button>
+          <button id="cancel-timer-btn" class="secondary">Cancel</button>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="../static/flashcard.js"></script>
+  <!-- Break Reminder Overlay -->
+  <div id="break-reminder" class="overlay hidden">
+    <p>Time for a break!</p>
+    <button id="resume-btn" class="primary">Resume</button>
+  </div>
+
+  <script src="../static/script.js"></script>
 </body>
 
 </html>
