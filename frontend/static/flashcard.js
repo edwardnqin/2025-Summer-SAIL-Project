@@ -16,7 +16,9 @@ let currentCard = null;
 async function loadFiles() {
     const res = await fetch(`${API_URL}/list-files`);
     const data = await res.json();
-    qs('#flashcard-file-status')?.remove();
+
+    const fileListDiv = document.querySelector('#flashcard-file-list');
+    document.querySelector('#flashcard-file-status')?.remove();
 
     if (!data.files.length) {
         fileListDiv.textContent = 'No files found.';
@@ -40,6 +42,7 @@ async function loadFiles() {
     btn.onclick = generateCards;
     fileListDiv.appendChild(btn);
 }
+
 
 async function generateCards() {
     const checked = document.querySelectorAll('#flashcard-file-list input:checked');
