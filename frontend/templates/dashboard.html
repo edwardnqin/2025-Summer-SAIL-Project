@@ -89,7 +89,6 @@
             <button data-rating="2">Medium</button>
             <button data-rating="3">Easy</button>
           </div>
-          
         </div>
       </div>
     </section>
@@ -127,7 +126,12 @@
       <div id="timer-modal" class="modal hidden">
         <div class="modal-content">
           <h3>Set Timer</h3>
-          <input type="text" id="timer-input" placeholder="Enter time (mm:ss)" />
+          <input
+            type="text"
+            id="timer-input"
+            placeholder="Enter time (hh:mm:ss)"
+            pattern="^\d{1,2}:\d{2}:\d{2}$"
+          />
           <button id="save-timer-btn" class="primary">Save</button>
           <button id="cancel-timer-btn" class="secondary">Cancel</button>
         </div>
