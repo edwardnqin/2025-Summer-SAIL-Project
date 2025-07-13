@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wisebud - Study Assistant</title>
   <link rel="stylesheet" href="../static/style.css" />
 </head>
+
 <body>
   <nav class="top-nav">
     <h1>Wisebud</h1>
@@ -51,45 +53,15 @@
       </div>
     </section>
 
-    <!-- Flashcards -->
-    <section id="study-area" class="card">
-      <div class="card-header">Flashcards</div>
+    <!-- Study -->
+    <section class="card">
+      <div class="card-header">Study</div>
       <div class="card-content">
-        <!-- Flashcard root: scope CSS/JS under here -->
-        <div id="flashcard-area">
-          
-          <!-- Card container with 3D flip support -->
-          <div id="card-container">
-            <div class="card-inner">
-              
-              <!-- FRONT side: question (and MCQ options if any) -->
-              <div class="card-front">
-                <p id="question-text">
-                  Flashcard question or quiz will appear here
-                </p>
-                <div id="mcq-options"><!-- Inject multiple-choice options here --></div>
-              </div>
-              
-              <!-- BACK side: answer -->
-              <div class="card-back">
-                <p id="answer-text">Answer will appear here</p>
-              </div>
-              
-            </div>
-          </div>
-          
-          <!-- “Show Answer” button -->
-          <button id="show-answer-btn" class="primary">
-            Show Answer
-          </button>
-          
-          <!-- Performance buttons: hidden until after “Show Answer” -->
-          <div id="performance-btns" class="hidden">
-            <button data-rating="1">Hard</button>
-            <button data-rating="2">Medium</button>
-            <button data-rating="3">Easy</button>
-          </div>
-        </div>
+        <p>Practice and test yourself using flashcards and quizzes based on your uploaded notes.</p>
+      </div>
+      <div class="card-footer">
+        <button class="primary" onclick="window.location.href='flashcard.html'">Study Flashcards</button>
+        <button class="secondary" onclick="window.location.href='quiz.html'">Take a Quiz</button>
       </div>
     </section>
 
@@ -126,12 +98,7 @@
       <div id="timer-modal" class="modal hidden">
         <div class="modal-content">
           <h3>Set Timer</h3>
-          <input
-            type="text"
-            id="timer-input"
-            placeholder="Enter time (hh:mm:ss)"
-            pattern="^\d{1,2}:\d{2}:\d{2}$"
-          />
+          <input type="text" id="timer-input" placeholder="Enter time (hh:mm:ss)" pattern="^\d{1,2}:\d{2}:\d{2}$" />
           <button id="save-timer-btn" class="primary">Save</button>
           <button id="cancel-timer-btn" class="secondary">Cancel</button>
         </div>
@@ -147,4 +114,5 @@
 
   <script src="../static/script.js"></script>
 </body>
+
 </html>

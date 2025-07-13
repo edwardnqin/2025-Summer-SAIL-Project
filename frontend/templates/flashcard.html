@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wisebud - Flashcards</title>
+    <link rel="stylesheet" href="../static/style.css" />
+</head>
+
+<body>
+    <nav class="top-nav">
+        <h1>Wisebud Flashcards</h1>
+    </nav>
+
+    <main class="quiz-container">
+        <!-- File selection area -->
+        <section class="card quiz-files" id="file-select-section">
+            <div class="card-header">Select Files for Flashcards</div>
+            <div class="card-content" id="flashcard-file-list">
+                <div id="flashcard-file-status">Loading files...</div>
+            </div>
+        </section>
+
+        <!-- Flashcard interface -->
+        <section id="study-area" class="card">
+            <div class="card-header">Study</div>
+            <div class="card-content">
+                <div id="card-container">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <p id="question-text">Flashcard question or quiz will appear here</p>
+                            <div id="mcq-options"></div>
+                        </div>
+                    </div>
+                </div>
+                <button id="show-answer-btn" class="primary">Show Answer</button>
+                <div id="answer-box" class="card-back hidden">
+                    <p id="answer-text">Answer will appear here</p>
+                </div>
+                <div id="performance-btns" class="hidden"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="../static/flashcard.js"></script>
+</body>
+
+</html>
