@@ -54,14 +54,28 @@
     .primary:hover {
       filter: brightness(0.9);
     }
+
+    #summary-content h2 {
+      margin-top: 1.5rem;
+      color: var(--color-primary);
+    }
+
   </style>
 </head>
 <body>
   <nav class="top-nav"><h1>Wisebud Summary</h1></nav>
-  <main class="summary-container">
-    <div class="toc" id="summary-toc">Loading files...</div>
-    <div id="summary-content"></div>
+  <main class="container" style="grid-template-columns: 300px 1fr; align-items: start;">
+    <section class="card" style="min-width: 280px;">
+      <div class="card-header">Summary Table of Contents</div>
+      <div class="card-content" id="summary-toc">Loading files...</div>
+    </section>
+
+    <section class="card" style="width: 100%; height: calc(100vh - 120px); overflow-y: auto;">
+      <div class="card-header">Generated Notes</div>
+      <div class="card-content" id="summary-content" style="white-space: pre-wrap;"></div>
+    </section>
   </main>
+
 
   <script>
     const API_URL = 'http://127.0.0.1:5001';
