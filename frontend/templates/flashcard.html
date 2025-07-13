@@ -1,136 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wisebud - Flashcards</title>
-  <link rel="stylesheet" href="../static/style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wisebud - Flashcards</title>
+    <link rel="stylesheet" href="../static/style.css" />
 </head>
+
 <body>
-  <nav class="top-nav"><h1>Wisebud Flashcards</h1></nav>
+    <nav class="top-nav">
+        <h1>Wisebud Flashcards</h1>
+    </nav>
 
-  <main class="quiz-container">
-    <!-- File selection area -->
-    <section class="card quiz-files" id="file-select-section">
-      <div class="card-header">Select Files for Flashcards</div>
-      <div class="card-content" id="flashcard-file-list">
-        <div id="flashcard-file-status">Loading files...</div>
-      </div>
-    </section>
-
-    <!-- Flashcard interface -->
-    <section id="study-area" class="card">
-      <div class="card-header">Study</div>
-      <div class="card-content">
-        <div id="card-container">
-          <div class="card-inner">
-            <div class="card-front">
-              <p id="question-text">Flashcard question or quiz will appear here</p>
-              <div id="mcq-options"></div>
+    <main class="quiz-container">
+        <!-- File selection area -->
+        <section class="card quiz-files" id="file-select-section">
+            <div class="card-header">Select Files for Flashcards</div>
+            <div class="card-content" id="flashcard-file-list">
+                <div id="flashcard-file-status">Loading files...</div>
             </div>
-          </div>
-        </div>
-        <button id="show-answer-btn" class="primary">Show Answer</button>
-        <div id="answer-box" class="card-back hidden">
-          <p id="answer-text">Answer will appear here</p>
-        </div>
-        <div id="performance-btns" class="hidden"></div>
-      </div>
-    </section>
-  </main>
+        </section>
 
-  <script>
-    const API_URL = 'http://127.0.0.1:5001';
+        <!-- Flashcard interface -->
+        <section id="study-area" class="card">
+            <div class="card-header">Study</div>
+            <div class="card-content">
+                <div id="card-container">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <p id="question-text">Flashcard question or quiz will appear here</p>
+                            <div id="mcq-options"></div>
+                        </div>
+                    </div>
+                </div>
+                <button id="show-answer-btn" class="primary">Show Answer</button>
+                <div id="answer-box" class="card-back hidden">
+                    <p id="answer-text">Answer will appear here</p>
+                </div>
+                <div id="performance-btns" class="hidden"></div>
+            </div>
+        </section>
+    </main>
 
-    const qs = sel => document.querySelector(sel);
-    const fileListDiv = qs('#flashcard-file-list');
-    const questionText = qs('#question-text');
-    const answerText = qs('#answer-text');
-    const mcqOptions = qs('#mcq-options');
-    const showAnswerBtn = qs('#show-answer-btn');
-    const perfBtns = qs('#performance-btns');
-    const cardInner = qs('.card-inner');
-    const cardBack = qs('.card-back');
-    const cardFront = qs('.card-front');
-
-    let currentCard = null;
-
-    async function loadFiles() {
-      const res = await fetch(`${API_URL}/list-files`);
-      const data = await res.json();
-      qs('#flashcard-file-status')?.remove();
-
-      if (!data.files.length) {
-        fileListDiv.textContent = 'No files found.';
-        return;
-      }
-
-      data.files.forEach(filename => {
-        const label = document.createElement('label');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = filename;
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(filename));
-        fileListDiv.appendChild(label);
-        fileListDiv.appendChild(document.createElement('br'));
-      });
-
-      const btn = document.createElement('button');
-      btn.textContent = 'Start Study';
-      btn.className = 'primary';
-      btn.onclick = generateCards;
-      fileListDiv.appendChild(btn);
-    }
-
-    async function generateCards() {
-      const checked = document.querySelectorAll('#flashcard-file-list input:checked');
-      const filenames = Array.from(checked).map(cb => cb.value);
-      if (!filenames.length) return alert('Please select at least one file.');
-
-      const res = await fetch(`${API_URL}/generate-cards`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames })
-      });
-      const json = await res.json();
-      if (!res.ok) return alert(json.error || 'Generation failed.');
-
-      fetchNextCard();
-    }
-
-    async function fetchNextCard() {
-      const res = await fetch(`${API_URL}/get-card`);
-      if (!res.ok) {
-        questionText.textContent = 'No cards available.';
-        return;
-      }
-
-      const card = await res.json();
-      currentCard = card;
-      displayCard(card);
-    }
-
-    function displayCard(card) {
-      cardInner.classList.remove('flipped');
-      cardFront.classList.remove('hidden');
-      cardBack.classList.add('hidden');
-      showAnswerBtn.classList.toggle('hidden', card.type === 'mcq');
-      perfBtns.classList.add('hidden');
-      mcqOptions.innerHTML = '';
-
-      questionText.textContent = card.question;
-      answerText.textContent = card.answer;
-    }
-
-    showAnswerBtn.addEventListener('click', () => {
-      cardInner.classList.add('flipped');
-      cardBack.classList.remove('hidden');
-      showAnswerBtn.classList.add('hidden');
-      perfBtns.classList.remove('hidden');
-    });
-
-    loadFiles();
-  </script>
+    <script src="../static/flashcard.js"></script>
 </body>
+
 </html>
