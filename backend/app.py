@@ -294,11 +294,14 @@ def generate_quiz():
 
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
-        "You are a quiz generator for a midterm exam. Based on the following material, "
-        "create clear multiple-choice questions covering key concepts that students should understand."
-        "Each question must have exactly four distinct options labeled A, B, C, and D. "
-        "Return a JSON array of objects, each with 'question', 'options', and 'correctAnswer'.\n\n" + merged
-    )
+    	"You are a quiz generator for a midterm exam. Based on the following material, "
+    	"generate **exactly 10** clear multiple-choice questions that cover important concepts students should know. "
+    	"Each question must have exactly four distinct answer options labeled A, B, C, and D. "
+    	"Clearly indicate the correct answer using a 'correctAnswer' field. "
+    	"Return the result as a valid JSON array of 10 objects. "
+   	"Each object must contain a 'question', an 'options' dictionary with keys A/B/C/D, and a 'correctAnswer' key.\n\n"
+    	+ merged
+)
 
     response = openai.chat.completions.create(
         model=MODEL,
