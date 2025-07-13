@@ -99,43 +99,47 @@ def list_files():
 @app.post("/summarize")
 def summarize():
     data = request.get_json(force=True)
-    selected_files = data.get("filenames", [])
-    if not selected_files:
+    selected = data.get("filenames", [])
+    if not selected:
         return jsonify(error="No files selected"), 400
 
-    # Load database to get the file texts
     db = _load()
-    db_files = db.get("files", [])
-    files = [f for f in db_files if f["name"] in selected_files]
+    files = [f for f in db["files"] if f["name"] in selected]
     if not files:
-        return jsonify(error="No matching files found"), 404
+        return jsonify(error="No matching files"), 404
 
-    # Merge the file texts
-    merged = "\n\n".join(f["text"] for f in files)[:950_000]
-    prompt = "You are a study assistant helping students learn faster.\nSummarize the following material clearly and concisely:\n\n" + merged
+    # Build per‐file sections for the prompt
+    prompt_parts = []
+    for i, f in enumerate(files, start=1):
+        prompt_parts.append(
+            f"---\n"
+            f"DOCUMENT #{i} FILENAME: {f['name']}\n\n"
+            f"{f['text']}\n"
+        )
 
-    # Call OpenAI
+    prompt = (
+        "You are a study assistant.  For each document below, first invent a clear, concise title based on its content, then write a brief summary.  "
+        "Format **exactly** like this:\n\n"
+        "**<Title for Document 1>**\n"
+        "Summary of Document 1...\n\n"
+        "**<Title for Document 2>**\n"
+        "Summary of Document 2...\n\n"
+        "…and so on, matching the order of the documents.\n\n"
+        + "\n".join(prompt_parts)
+    )
+
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": "You are a helpful study assistant."},
-            {"role": "user", "content": prompt}
+            {"role": "user",   "content": prompt}
         ],
-        temperature=0.3
+        temperature=0.3,
     )
 
     summary = response.choices[0].message.content.strip()
 
-    # RE-LOAD the database to save the summary
-    db = _load()
-    if "summaries" not in db:
-        db["summaries"] = []
-    db["summaries"].append({
-        "timestamp": datetime.datetime.now().isoformat(),
-        "files": selected_files,
-        "summary": summary
-    })
-    _save(db)
+    # (save to JSON DB if you like…)
 
     return jsonify(summary=summary)
 
