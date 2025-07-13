@@ -264,3 +264,82 @@ textarea:focus {
     border-radius: 4px;
     cursor: pointer;
 }
+
+/* === Flashcard Styles under #study-area === */
+#study-area #flashcard-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+  
+  #study-area #card-container {
+    width: 320px;
+    height: 220px;
+    perspective: 800px;
+    margin-bottom: 1rem;
+  }
+  
+  #study-area .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+    transform-style: preserve-3d;
+  }
+  
+  #study-area .card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+  
+  #study-area .card-front,
+  #study-area .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+  }
+  
+  #study-area .card-back {
+    transform: rotateY(180deg);
+  }
+  
+  #study-area #show-answer-btn {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: var(--color-primary);
+    color: white;
+    cursor: pointer;
+  }
+  
+  #study-area #performance-btns {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  
+  #study-area #performance-btns button {
+    flex: 1;
+    padding: 0.5rem 0;
+    border: 2px solid var(--color-primary);
+    border-radius: 0.5rem;
+    background: #f0f8ff;
+    cursor: pointer;
+  }
+  
+  #study-area #performance-btns button:hover {
+    background: var(--color-primary);
+    color: white;
+  }
+  

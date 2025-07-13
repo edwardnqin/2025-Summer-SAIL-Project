@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardFront = qs('.card-front');
   const cardBack = qs('.card-back');
 
+  const cardContainer = qs('#card-container');
+  const cardInner     = qs('#card-container .card-inner');
+
   const breakReminder = qs('#break-reminder');
   const resumeBtn = qs('#resume-btn');
 
@@ -162,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function displayCard(card) {
+    cardInner.classList.remove('flipped');
     cardFront.classList.remove('hidden');
     cardBack.classList.add('hidden');
     showAnswerBtn.classList.toggle('hidden', card.type === 'mcq');
@@ -285,19 +289,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   showAnswerBtn.addEventListener('click', () => {
+    cardInner.classList.add('flipped');
     cardBack.classList.remove('hidden');
     showAnswerBtn.classList.add('hidden');
     perfBtns.classList.remove('hidden');
   });
 
+  cardContainer.addEventListener('click', () => {
+    cardInner.classList.toggle('flipped');
+  });
+
   perfBtns.addEventListener('click', async e => {
-    if (!e.target.matches('.perf-btn')) return;
+    if (!e.target.matches('#performance-btns button')) return;
+    
+    const quality = e.target.dataset.rating;
     await fetch(`${API_URL}/update-card-performance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cardId: currentCard.id,
-        quality: e.target.dataset.quality
+        quality
       })
     });
     fetchDueCard();

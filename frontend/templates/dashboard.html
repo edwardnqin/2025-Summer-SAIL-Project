@@ -55,23 +55,45 @@
     <section id="study-area" class="card">
       <div class="card-header">Flashcards</div>
       <div class="card-content">
-        <div id="card-container">
-          <div class="card-inner">
-            <div class="card-front">
-              <p id="question-text">Flashcard question or quiz will appear here</p>
-              <div id="mcq-options"></div>
+        <!-- Flashcard root: scope CSS/JS under here -->
+        <div id="flashcard-area">
+          
+          <!-- Card container with 3D flip support -->
+          <div id="card-container">
+            <div class="card-inner">
+              
+              <!-- FRONT side: question (and MCQ options if any) -->
+              <div class="card-front">
+                <p id="question-text">
+                  Flashcard question or quiz will appear here
+                </p>
+                <div id="mcq-options"><!-- Inject multiple-choice options here --></div>
+              </div>
+              
+              <!-- BACK side: answer -->
+              <div class="card-back">
+                <p id="answer-text">Answer will appear here</p>
+              </div>
+              
             </div>
           </div>
-        </div>
-        <button id="show-answer-btn" class="primary">Show Answer</button>
-        <div id="answer-box" class="card-back hidden">
-          <p id="answer-text">Answer will appear here</p>
-        </div>
-        <div id="performance-btns" class="hidden">
-          <!-- performance buttons injected here -->
+          
+          <!-- “Show Answer” button -->
+          <button id="show-answer-btn" class="primary">
+            Show Answer
+          </button>
+          
+          <!-- Performance buttons: hidden until after “Show Answer” -->
+          <div id="performance-btns" class="hidden">
+            <button data-rating="1">Hard</button>
+            <button data-rating="2">Medium</button>
+            <button data-rating="3">Easy</button>
+          </div>
+          
         </div>
       </div>
     </section>
+
 
     <!-- Chat -->
     <section id="chat-section" class="card">
