@@ -55,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelTimerBtn = qs('#cancel-timer-btn');
   const pauseTimerBtn = qs('#pause-timer-btn');
 
+  const quizBtn = document.createElement('button');
+  quizBtn.textContent = 'Take a Quiz';
+  quizBtn.className = 'secondary';
+  quizBtn.onclick = () => window.location.href = 'quiz.html';
+  document.querySelector('.card-footer').appendChild(quizBtn);
+  
   let currentCard = null;
   let workTimer, breakTimer;
   let timeLeft = 25 * 60;

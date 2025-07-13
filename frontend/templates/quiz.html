@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wisebud - Quiz</title>
+  <link rel="stylesheet" href="../static/quiz.css" />
+</head>
+<body>
+  <nav class="top-nav"><h1>Wisebud Quiz</h1></nav>
+
+  <main class="quiz-container">
+    <!-- File selection area -->
+    <section class="card quiz-files" id="file-select-section">
+      <div class="card-header">Select Files for Quiz</div>
+      <div class="card-content" id="quiz-file-list">Loading files...</div>
+    </section>
+
+    <!-- Quiz interface -->
+    <section class="card quiz-interface hidden" id="quiz-section">
+      <div class="card-header">
+        <span id="quiz-title">Quiz</span>
+        <span id="quiz-timer"></span>
+      </div>
+      <div class="card-content">
+        <div id="quiz-question"></div>
+        <div id="quiz-options"></div>
+
+        <div class="quiz-nav">
+          <button id="prev-btn" class="secondary">Previous</button>
+          <button id="next-btn" class="primary">Next</button>
+        </div>
+
+        <div class="quiz-progress" id="quiz-progress"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../static/quiz.js"></script>
+</body>
+</html>
