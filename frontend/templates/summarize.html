@@ -9,11 +9,10 @@
   <!-- Global styles -->
   <link rel="stylesheet" href="../static/style.css" />
 
-  <!-- Override to shrink-wrap checkboxes, align them, and keep filenames unbold -->
+  <!-- Override to align checkboxes, reset width, and normal weight -->
   <style>
     .toc {
       margin-bottom: 1rem;
-      /* font-weight removed so children default to normal */
     }
     .toc label {
       display: flex;
@@ -21,7 +20,7 @@
       gap: 8px;
       margin-bottom: 6px;
       cursor: pointer;
-      font-weight: normal;    /* ensure filenames are not bold */
+      font-weight: normal;
     }
     .toc input[type="checkbox"] {
       width: auto;
@@ -32,7 +31,7 @@
     }
   </style>
 
-  <!-- rest of your summary-specific CSS -->
+  <!-- Summary-specific styling -->
   <style>
     .summary-container {
       max-width: 800px;
@@ -150,12 +149,12 @@
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 
-      // rebuild TOC with anchors
-      const chapters = [...summary.matchAll(/\*\*(Chapter \d+:.*?)\*\*/g)];
+      // rebuild TOC with anchors using any bolded title
+      const chapters = [...summary.matchAll(/\*\*(.+?)\*\*/g)];
       const tocDiv = document.getElementById("summary-toc");
       tocDiv.innerHTML = "<strong>Table of Contents</strong><br>";
       chapters.forEach((match, i) => {
-        const anchor = `chapter-${i}`;
+        const anchor = `section-${i}`;
         contentDiv.innerHTML = contentDiv.innerHTML.replace(
           match[0],
           `<a id="${anchor}"></a><h2>${match[1]}</h2>`
@@ -168,7 +167,7 @@
       });
     }
 
-    // initialize on load
+    // initialize file list on load
     listFiles();
   </script>
 </body>
