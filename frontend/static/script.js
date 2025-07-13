@@ -1,102 +1,69 @@
 document.addEventListener('DOMContentLoaded', () => {
-  /* CONFIG */
   const API_URL = 'http://127.0.0.1:5001';
 
-  // Durations for Pomodoro-style sessions
-  const WORK_SESSION_DURATION  = 20 * 60 * 1000;
-  const BREAK_SESSION_DURATION = 10 * 60 * 1000;
-
-  /* DOM SELECTORS */
   const qs = sel => document.querySelector(sel);
 
-  const timerCircle   = qs('#clock-svg circle');
-  const radius        = timerCircle.r.baseVal.value;
+  const timerCircle = qs('#clock-svg circle');
+  const radius = timerCircle.r.baseVal.value;
   const circumference = 2 * Math.PI * radius;
-  timerCircle.style.strokeDasharray  = circumference;
+  timerCircle.style.strokeDasharray = circumference;
   timerCircle.style.strokeDashoffset = circumference;
 
-  const setupArea       = qs('#setup-area');
-  const studyArea       = qs('#study-area');
-  const generateBtn     = qs('#generate-btn');
-  const summarizeBtn    = qs('#summarize-btn');
-  const chatForm        = qs('#chat-form');
-  const chatLog         = qs('#chat-log');
-  const chatSection     = qs('#chat-section');
-  const statusMsg       = qs('#status-message');
+  const setupArea = qs('#setup-area');
+  const studyArea = qs('#study-area');
+  const generateBtn = qs('#generate-btn');
+  const summarizeBtn = qs('#summarize-btn');
+  const chatForm = qs('#chat-form');
+  const chatLog = qs('#chat-log');
+  const chatSection = qs('#chat-section');
+  const statusMsg = qs('#status-message');
 
-  const sourceSelect    = qs('#source-select');
-  const panelLocal      = qs('#panel-local');
-  const panelDrive      = qs('#panel-drive');
-  const panelBackend    = qs('#panel-backend');
-  const drivePickerBtn  = qs('#drive-picker-btn');
-  const driveFileName   = qs('#drive-file-name');
-  const loadJsonBtn     = qs('#load-json-btn');
-  const backendStatus   = qs('#backend-status');
+  const sourceSelect = qs('#source-select');
+  const panelLocal = qs('#panel-local');
+  const panelDrive = qs('#panel-drive');
+  const panelBackend = qs('#panel-backend');
+  const drivePickerBtn = qs('#drive-picker-btn');
+  const driveFileName = qs('#drive-file-name');
+  const loadJsonBtn = qs('#load-json-btn');
+  const backendStatus = qs('#backend-status');
 
-  // const textInput       = qs('#text-input');
-  const fileUpload      = qs('#file-upload');
+  const fileUpload = qs('#file-upload');
   const fileNameDisplay = qs('#file-name-display');
+  const fileList = qs('#file-list');
 
-  const questionText    = qs('#question-text');
-  const answerText      = qs('#answer-text');
-  const mcqOptions      = qs('#mcq-options');
+  const questionText = qs('#question-text');
+  const answerText = qs('#answer-text');
+  const mcqOptions = qs('#mcq-options');
 
-  const showAnswerBtn   = qs('#show-answer-btn');
-  const perfBtns        = qs('#performance-btns');
-  const cardFront       = qs('.card-front');
-  const cardBack        = qs('.card-back');
+  const showAnswerBtn = qs('#show-answer-btn');
+  const perfBtns = qs('#performance-btns');
+  const cardFront = qs('.card-front');
+  const cardBack = qs('.card-back');
 
-  const breakReminder   = qs('#break-reminder');
-  const resumeBtn       = qs('#resume-btn');
+  const breakReminder = qs('#break-reminder');
+  const resumeBtn = qs('#resume-btn');
 
-  const timerDisplay    = qs('#timer-display text');
-  const timerInput      = qs('#timer-input');
-  const setTimerBtn     = qs('#set-timer-btn');
-  const startTimerBtn   = qs('#start-timer-btn');
-  const timerModal      = qs('#timer-modal');
-  const saveTimerBtn    = qs('#save-timer-btn');
-  const cancelTimerBtn  = qs('#cancel-timer-btn');
+  const timerDisplay = qs('#timer-display text');
+  const timerInput = qs('#timer-input');
+  const setTimerBtn = qs('#set-timer-btn');
+  const startTimerBtn = qs('#start-timer-btn');
+  const timerModal = qs('#timer-modal');
+  const saveTimerBtn = qs('#save-timer-btn');
+  const cancelTimerBtn = qs('#cancel-timer-btn');
   const pauseTimerBtn = qs('#pause-timer-btn');
 
-  timerCircle.style.strokeDasharray  = circumference;
-  timerCircle.style.strokeDashoffset = circumference;
-
-  /* STATE */
   let currentCard = null;
   let workTimer, breakTimer;
   let timeLeft = 25 * 60;
   let timerInterval = null;
 
-  /* HELPERS */
   const setStatus = msg => statusMsg.textContent = msg;
-
-  function startWorkTimer() {
-    clearTimeout(workTimer);
-    clearTimeout(breakTimer);
-
-    workTimer = setTimeout(() => {
-      // hide study, show break overlay
-      studyArea.classList.add('hidden');
-      breakReminder.classList.remove('hidden');
-
-      // auto-resume after break
-      breakTimer = setTimeout(() => {
-        breakReminder.classList.add('hidden');
-        studyArea.classList.remove('hidden');
-        startWorkTimer();
-      }, BREAK_SESSION_DURATION);
-
-    }, WORK_SESSION_DURATION);
-  }
 
   function updateClock() {
     const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
     timerDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-
-    // fraction of time remaining (0 → 1)
-    const progress = timeLeft / (25 * 60);  
-    // shrink the ring by offsetting the dash
+    const progress = timeLeft / (25 * 60);
     timerCircle.style.strokeDashoffset = circumference * (1 - progress);
   }
 
@@ -106,43 +73,67 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  /* BACKEND CALLS */
+  let cachedFiles = [];
+
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      // const txt  = textInput.value.trim();
-      const file = fileUpload.files[0];
-      // if (!txt && !file) { setStatus('Paste text or choose a file.'); return false; }
-      // if (txt)  fd.append('text_content', txt);
-      // else      fd.append('file', file);
-      if (!file) { setStatus('please choose a file.'); return false; }
-      fd.append('file', file);
+      if (!cachedFiles.length) { setStatus('Please choose at least one file.'); return false; }
+      for (const file of cachedFiles) {
+        fd.append('files', file);
+      }
     } else if (sourceSelect.value === 'drive') {
       if (!window.chosenDriveFile) { setStatus('No Drive file selected.'); return false; }
-      fd.append('file', window.chosenDriveFile);
+      fd.append('files', window.chosenDriveFile);
     } else {
       const txt = textInput.value.trim();
       if (!txt) { setStatus('No data loaded from backend.'); return false; }
       fd.append('text_content', txt);
     }
 
-    const res = await fetch(`${API_URL}/upload`, { method:'POST', body: fd });
+    const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Upload failed');
     return true;
   }
 
-  async function fetchSummary() {
-    const res = await fetch(`${API_URL}/summarize`);
-    const { summary, error } = await res.json();
-    if (error) throw new Error(error);
-    qs('#summary-box').textContent = summary;
+  async function displayUploadedFiles() {
+    try {
+      const res = await fetch(`${API_URL}/list-files`);
+      const data = await res.json();
+      fileList.innerHTML = '';
+      data.files.forEach(name => {
+        const li = document.createElement('li');
+        li.textContent = name;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '❌';
+        delBtn.className = 'secondary delete-btn';
+        delBtn.onclick = async () => {
+          const confirmDel = confirm(`Delete all '${name}'?`);
+          if (!confirmDel) return;
+          const res = await fetch(`${API_URL}/delete-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: name })
+          });
+          const msg = await res.json();
+          setStatus(msg.message || 'Deleted.');
+          await displayUploadedFiles();
+        };
+
+        li.appendChild(delBtn);
+        fileList.appendChild(li);
+      });
+    } catch (err) {
+      console.error('Error loading files:', err);
+    }
   }
 
   async function askModel(q) {
     const res = await fetch(`${API_URL}/ask`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: q })
     });
     const { answer, error } = await res.json();
@@ -150,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return answer;
   }
 
-  /* FLASHCARD LOGIC */
   async function fetchDueCard() {
     setStatus('Loading next card…');
     const res = await fetch(`${API_URL}/get-due-card`);
@@ -168,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setupArea.classList.add('hidden');
       studyArea.classList.remove('hidden');
       setStatus('');
-      startWorkTimer();
     }
   }
 
@@ -196,18 +185,31 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleMcq(btn, opt, correct) {
     mcqOptions.querySelectorAll('.mcq-option').forEach(b => {
       b.disabled = true;
-      if (b.textContent === correct) b.classList.replace('secondary','primary');
+      if (b.textContent === correct) b.classList.replace('secondary', 'primary');
     });
     if (opt !== correct) btn.classList.add('incorrect');
     perfBtns.classList.remove('hidden');
   }
 
-  /* EVENT BINDINGS */
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
-      fileNameDisplay.textContent = fileUpload.files[0].name;
-      textInput.value = '';
-      textInput.disabled = true;
+      const selectedFiles = Array.from(fileUpload.files);
+
+      const names = new Set(cachedFiles.map(f => f.name));
+      selectedFiles.forEach(f => {
+        if (!names.has(f.name)) cachedFiles.push(f);
+      });
+
+      const ul = document.createElement('ul');
+      ul.style.margin = '0';
+      ul.style.paddingLeft = '16px';
+      cachedFiles.forEach(file => {
+        const li = document.createElement('li');
+        li.textContent = file.name;
+        ul.appendChild(li);
+      });
+      fileNameDisplay.innerHTML = '';
+      fileNameDisplay.appendChild(ul);
     }
   });
 
@@ -215,7 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setStatus('Uploading & generating cards…');
       await uploadFileOrText();
-      const res = await fetch(`${API_URL}/generate-cards`, { method:'POST' });
+      await displayUploadedFiles();
+      const res = await fetch(`${API_URL}/generate-cards`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filenames: [] })  // empty: generates from all
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
       setStatus(json.message);
@@ -226,19 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // summarizeBtn.addEventListener('click', async () => {
-  //   try {
-  //     setStatus('Summarizing…');
-  //     await fetchSummary();
-  //     setStatus('');
-  //   } catch (err) {
-  //     setStatus(err.message);
-  //   }
-  // });
   summarizeBtn.addEventListener('click', () => {
     window.location.href = 'summarize.html';
   });
-
 
   sourceSelect.addEventListener('change', () => {
     panelLocal.classList.toggle('hidden', sourceSelect.value !== 'local');
@@ -248,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   drivePickerBtn.addEventListener('click', async () => {
     try {
-      // TODO: integrate Google Picker
       const file = await pickFileFromDrive();
       driveFileName.textContent = file.name;
       window.chosenDriveFile = file;
@@ -298,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!e.target.matches('.perf-btn')) return;
     await fetch(`${API_URL}/update-card-performance`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cardId: currentCard.id,
         quality: e.target.dataset.quality
@@ -310,10 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
   resumeBtn.addEventListener('click', () => {
     breakReminder.classList.add('hidden');
     studyArea.classList.remove('hidden');
-    startWorkTimer();
   });
 
-  /* TIMER MODAL LOGIC */
   setTimerBtn.addEventListener('click', () => {
     timerModal.classList.remove('hidden');
     timerInput.value = formatTime(timeLeft);
@@ -347,12 +341,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
 
-  // Pause the running timer
   pauseTimerBtn.addEventListener('click', () => {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    setStatus('Timer paused');
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      setStatus('Timer paused');
     }
   });
 
@@ -361,7 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.play();
   }
 
-  /* INIT */
+  // INIT
+  displayUploadedFiles();
   fetchDueCard();
   updateClock();
 });

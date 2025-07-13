@@ -25,6 +25,11 @@ CORS(app)
 # ─── Simple JSON "DB" ──────────────────────────────────────────────────
 DB = "study_data.json"
 
+# Automatically delete JSON DB on every server start
+if os.path.exists(DB):
+    os.remove(DB)
+    print(f"{DB} deleted on server start.")
+
 def _load():
     # If file doesn't exist, return a complete default structure
     if not os.path.exists(DB):
@@ -54,54 +59,43 @@ def _save(data):
 # ─── 1) UPLOAD ─────────────────────────────────────────────────────────
 @app.post("/upload")
 def upload():
-    f = request.files.get("file")
-    if not f:
-        return jsonify(error="No file"), 400
-
-    name = pathlib.Path(f.filename).name
-    data = f.read()
-
-    if name.lower().endswith(".pdf"):
-        text = pdf_to_text(data)
-    elif name.lower().endswith((".txt", ".md")):
-        text = data.decode("utf-8", errors="ignore")
-    elif name.lower().endswith(".docx"):
-        text = docx_to_text(data)
-    elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
-        text = image_to_base64(data)
-    else:
-        return jsonify(error="Unsupported file type"), 415
+    uploaded_files = request.files.getlist("files")
+    if not uploaded_files:
+        return jsonify(error="No files provided"), 400
 
     db = _load()
-    db["files"].append({"name": name, "text": text})
+    added = 0
+
+    for f in uploaded_files:
+        name = pathlib.Path(f.filename).name
+        data = f.read()
+
+        if name.lower().endswith(".pdf"):
+            text = pdf_to_text(data)
+        elif name.lower().endswith((".txt", ".md")):
+            text = data.decode("utf-8", errors="ignore")
+        elif name.lower().endswith(".docx"):
+            text = docx_to_text(data)
+        elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
+            text = image_to_base64(data)
+        else:
+            continue  # skip unsupported files
+
+        db["files"].append({"name": name, "text": text})
+        added += 1
+
     _save(db)
-    return jsonify(message=f"{name} uploaded.", total_files=len(db["files"]))
+    return jsonify(message=f"{added} files uploaded.", total_files=len(db["files"]))
 
 # ─── 2) LIST FILES ─────────────────────────────────────────────────────
 @app.get("/list-files")
 def list_files():
-    files = _load().get("files", [])
-    return jsonify(files=[f["name"] for f in files])
-
-# ─── 3) DELETE FILE ────────────────────────────────────────────────────
-@app.post("/delete-file")
-def delete_file():
-    data = request.get_json(force=True)
-    filename = data.get("filename")
-    if not filename:
-        return jsonify(error="No filename provided"), 400
-
     db = _load()
-    before = len(db["files"])
-    db["files"] = [f for f in db["files"] if f["name"] != filename]
-    _save(db)
+    file_names = [f["name"] for f in db.get("files", [])]
+    unique_file_names = sorted(set(file_names))  # optional: sorted for consistent order
+    return jsonify(files=unique_file_names)
 
-    after = len(db["files"])
-    if before == after:
-        return jsonify(error="File not found"), 404
-    return jsonify(message=f"Deleted {filename}")
-
-# ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
+# ─── 3) SUMMARIZE ──────────────────────────────────────────────────────
 @app.post("/summarize")
 def summarize():
     data = request.get_json(force=True)
@@ -145,7 +139,7 @@ def summarize():
 
     return jsonify(summary=summary)
 
-# ─── 5) ASK ────────────────────────────────────────────────────────────
+# ─── 4) ASK ────────────────────────────────────────────────────────────
 @app.post("/ask")
 def ask():
     data = request.get_json(force=True)
@@ -201,7 +195,7 @@ def ask():
     answer = response.choices[0].message.content.strip()
     return jsonify(answer=answer)
 
-# ─── 6) GENERATE FLASHCARDS ────────────────────────────────────────────
+# ─── 5) GENERATE FLASHCARDS ────────────────────────────────────────────
 @app.post("/generate-cards")
 def generate_cards():
     data = request.get_json(force=True)
@@ -250,7 +244,7 @@ def generate_cards():
     _save(db)
     return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
-# ─── 7) GET CARD ───────────────────────────────────────────────────
+# ─── 6) GET CARD ───────────────────────────────────────────────────
 @app.get("/get-card")
 def get_card():
     db = _load()
@@ -259,7 +253,7 @@ def get_card():
         return jsonify(message="No cards available"), 404
     return jsonify(random.choice(cards))  # Pick a random card
 
-# ─── 8) ANSWER CARD ───────────────────────────────────────────────────
+# ─── 7) ANSWER CARD ───────────────────────────────────────────────────
 @app.post("/answer-card")
 def answer_card():
     data = request.get_json(force=True)
@@ -284,7 +278,7 @@ def answer_card():
         # Incorrect answer, keep the card
         return jsonify(message="Card kept.")
 
-# ─── 9) GENERATE QUIZ ───────────────────────────────────────────────────
+# ─── 8) GENERATE QUIZ ───────────────────────────────────────────────────
 @app.post("/generate-quiz")
 def generate_quiz():
     data = request.get_json(force=True)
@@ -332,6 +326,22 @@ def generate_quiz():
     _save(db)
 
     return jsonify(questions=questions)
+
+# ─── 9) DELETE FILE ─────────────────────────────────────────────────────
+@app.post("/delete-file")
+def delete_file():
+    data = request.get_json(force=True)
+    filename = data.get("filename")
+    if not filename:
+        return jsonify(error="Missing 'filename'"), 400
+
+    db = _load()
+    original_len = len(db["files"])
+    db["files"] = [f for f in db["files"] if f["name"] != filename]
+    removed_count = original_len - len(db["files"])
+    _save(db)
+
+    return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
 
 # ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
