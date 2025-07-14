@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   const API_URL = 'http://127.0.0.1:5001';
-
   const qs = sel => document.querySelector(sel);
 
   const timerCircle = qs('#clock-svg circle');
@@ -14,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const generateBtn = qs('#generate-btn');
   const summarizeBtn = qs('#summarize-btn');
   const chatForm = qs('#chat-form');
+  const chatInput = qs('#chat-input');
   const chatLog = qs('#chat-log');
-  const chatSection = qs('#chat-section');
   const statusMsg = qs('#status-message');
 
   const sourceSelect = qs('#source-select');
@@ -26,10 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const driveFileName = qs('#drive-file-name');
   const loadJsonBtn = qs('#load-json-btn');
   const backendStatus = qs('#backend-status');
+  const textInput = qs('#text-input');
 
   const fileUpload = qs('#file-upload');
-  const fileNameDisplay = qs('#file-name-display');
   const fileList = qs('#file-list');
+  const fileNameDisplay = qs('#file-name-display');
 
   const questionText = qs('#question-text');
   const answerText = qs('#answer-text');
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardBack = qs('.card-back');
 
   const cardContainer = qs('#card-container');
-  const cardInner     = qs('#card-container .card-inner');
+  const cardInner = qs('#card-container .card-inner');
 
   const breakReminder = qs('#break-reminder');
   const resumeBtn = qs('#resume-btn');
@@ -50,37 +50,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const timerInput = qs('#timer-input');
   const setTimerBtn = qs('#set-timer-btn');
   const startTimerBtn = qs('#start-timer-btn');
+  const pauseTimerBtn = qs('#pause-timer-btn');
   const timerModal = qs('#timer-modal');
   const saveTimerBtn = qs('#save-timer-btn');
   const cancelTimerBtn = qs('#cancel-timer-btn');
-  const pauseTimerBtn = qs('#pause-timer-btn');
-  
+
   let currentCard = null;
-  let workTimer, breakTimer;
-  let timeLeft = 25 * 60;
-  let initialTime = timeLeft;    // record the full session length
+  let cachedFiles = [];
   let timerInterval = null;
+  let timeLeft = 25 * 60;
+  let initialTime = timeLeft;
 
   const setStatus = msg => statusMsg.textContent = msg;
-
-  function updateClock() {
-    // show hh:mm:ss
-    timerDisplay.textContent = formatTime(timeLeft);
-  
-    // progress against the full initialTime
-    const progress = timeLeft / initialTime;
-    timerCircle.style.strokeDashoffset = circumference * (1 - progress);
-  }
 
   function formatTime(sec) {
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
-    return `${h.toString().padStart(2,'0')}:${m
-      .toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  let cachedFiles = [];
+  function updateClock() {
+    timerDisplay.textContent = formatTime(timeLeft);
+    const progress = timeLeft / initialTime;
+    timerCircle.style.strokeDashoffset = circumference * (1 - progress);
+  }
 
   async function uploadFileOrText() {
     const fd = new FormData();
@@ -151,21 +145,20 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchDueCard() {
     setStatus('Loading next card…');
     const res = await fetch(`${API_URL}/get-due-card`);
-    if (!res.ok) { setStatus('Backend error'); return; }
     const data = await res.json();
-
-    if (data.message) {
+    if (!res.ok || data.message) {
       currentCard = null;
-      setStatus(data.message);
-      studyArea.classList.add('hidden');
-      setupArea.classList.remove('hidden');
-    } else {
-      currentCard = data;
-      displayCard(data);
-      setupArea.classList.add('hidden');
-      studyArea.classList.remove('hidden');
-      setStatus('');
+      setStatus(data.message || 'No cards.');
+      studyArea?.classList.add('hidden');
+      setupArea?.classList.remove('hidden');
+      return;
     }
+
+    currentCard = data;
+    displayCard(data);
+    setupArea?.classList.add('hidden');
+    studyArea?.classList.remove('hidden');
+    setStatus('');
   }
 
   function displayCard(card) {
@@ -199,10 +192,26 @@ document.addEventListener('DOMContentLoaded', () => {
     perfBtns.classList.remove('hidden');
   }
 
+  generateBtn.addEventListener('click', async () => {
+    try {
+      setStatus('Uploading files…');
+      const success = await uploadFileOrText();
+      if (success) {
+        await displayUploadedFiles();
+        setStatus('Files uploaded successfully.');
+      }
+    } catch (err) {
+      setStatus(err.message);
+    }
+  });
+
+  summarizeBtn.addEventListener('click', () => {
+    window.location.href = 'summarize.html';
+  });
+
   fileUpload.addEventListener('change', () => {
     if (fileUpload.files.length) {
       const selectedFiles = Array.from(fileUpload.files);
-
       const names = new Set(cachedFiles.map(f => f.name));
       selectedFiles.forEach(f => {
         if (!names.has(f.name)) cachedFiles.push(f);
@@ -219,30 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
       fileNameDisplay.innerHTML = '';
       fileNameDisplay.appendChild(ul);
     }
-  });
-
-  generateBtn.addEventListener('click', async () => {
-    try {
-      setStatus('Uploading & generating cards…');
-      await uploadFileOrText();
-      await displayUploadedFiles();
-      const res = await fetch(`${API_URL}/generate-cards`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: [] })  // empty: generates from all
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      setStatus(json.message);
-      await fetchDueCard();
-    } catch (err) {
-      setStatus(err.message);
-      setupArea.classList.remove('hidden');
-    }
-  });
-
-  summarizeBtn.addEventListener('click', () => {
-    window.location.href = 'summarize.html';
   });
 
   sourceSelect.addEventListener('change', () => {
@@ -278,11 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chatForm.addEventListener('submit', async e => {
     e.preventDefault();
-    const q = qs('#chat-input').value.trim();
+    const q = chatInput.value.trim();
     if (!q) return;
     chatLog.value += `You: ${q}\n`;
-    qs('#chat-input').value = '';
+    chatInput.value = '';
     chatLog.scrollTop = chatLog.scrollHeight;
+
     try {
       const a = await askModel(q);
       chatLog.value += `AI: ${a}\n\n`;
@@ -292,76 +278,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  showAnswerBtn.addEventListener('click', () => {
+  showAnswerBtn?.addEventListener('click', () => {
     cardInner.classList.add('flipped');
     cardBack.classList.remove('hidden');
     showAnswerBtn.classList.add('hidden');
     perfBtns.classList.remove('hidden');
   });
 
-  cardContainer.addEventListener('click', () => {
+  cardContainer?.addEventListener('click', () => {
     cardInner.classList.toggle('flipped');
   });
 
-  perfBtns.addEventListener('click', async e => {
+  perfBtns?.addEventListener('click', async e => {
     if (!e.target.matches('#performance-btns button')) return;
-    
     const quality = e.target.dataset.rating;
     await fetch(`${API_URL}/update-card-performance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cardId: currentCard.id,
-        quality
-      })
+      body: JSON.stringify({ cardId: currentCard.id, quality })
     });
     fetchDueCard();
   });
 
-  resumeBtn.addEventListener('click', () => {
+  resumeBtn?.addEventListener('click', () => {
     breakReminder.classList.add('hidden');
     studyArea.classList.remove('hidden');
   });
 
-  setTimerBtn.addEventListener('click', () => {
+  setTimerBtn?.addEventListener('click', () => {
     timerModal.classList.remove('hidden');
     timerInput.value = formatTime(timeLeft);
   });
 
-  saveTimerBtn.addEventListener('click', () => {
-    // Split on “:” into [hh, mm, ss]
+  saveTimerBtn?.addEventListener('click', () => {
     const parts = timerInput.value.split(':').map(Number);
-  
-    // Only accept exactly three numbers
     if (parts.length === 3) {
       const [h, m, s] = parts;
-  
-      // Validate ranges: mm and ss must be 0–59, h ≥ 0
-      if (
-        !isNaN(h) && h >= 0 &&
-        !isNaN(m) && m >= 0 && m < 60 &&
-        !isNaN(s) && s >= 0 && s < 60
-      ) {
-        // Convert to seconds and reset baseline
-        timeLeft    = h * 3600 + m * 60 + s;
+      if (!isNaN(h) && h >= 0 && !isNaN(m) && m < 60 && !isNaN(s) && s < 60) {
+        timeLeft = h * 3600 + m * 60 + s;
         initialTime = timeLeft;
-  
-        // Update the display and close modal
         updateClock();
         timerModal.classList.add('hidden');
         return;
       }
     }
-  
-    // Fallback on invalid input
     alert('Please enter time as hh:mm:ss, with 0≤mm,ss<60.');
   });
 
-  cancelTimerBtn.addEventListener('click', () => {
+  cancelTimerBtn?.addEventListener('click', () => {
     timerModal.classList.add('hidden');
   });
 
-  startTimerBtn.addEventListener('click', () => {
+  startTimerBtn?.addEventListener('click', () => {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       if (timeLeft > 0) {
@@ -374,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
 
-  pauseTimerBtn.addEventListener('click', () => {
+  pauseTimerBtn?.addEventListener('click', () => {
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
