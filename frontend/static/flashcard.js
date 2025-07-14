@@ -29,13 +29,16 @@ async function loadFiles() {
     const wrapper = document.createElement('div');
     wrapper.className = 'file-item';
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = filename;
-    checkbox.name = 'selectedFiles';
+const checkbox = document.createElement('input');
+checkbox.type = 'checkbox';
+checkbox.value = filename;
+checkbox.name = 'selectedFiles';
+checkbox.id = `file-${filename}`;
 
-    const label = document.createElement('label');
-    label.textContent = filename;
+const label = document.createElement('label');
+label.textContent = filename;
+label.setAttribute('for', checkbox.id);
+
 
     wrapper.appendChild(checkbox);
     wrapper.appendChild(label);
@@ -100,6 +103,31 @@ showAnswerBtn.addEventListener('click', () => {
     cardBack.classList.remove('hidden');
     showAnswerBtn.classList.add('hidden');
     perfBtns.classList.remove('hidden');
+});
+
+perfBtns.addEventListener('click', async e => {
+    if (!e.target.matches('#performance-btns button')) return;
+    const action = e.target.textContent.toLowerCase();
+
+    if (!currentCard || !currentCard.id) return;
+
+    if (action === 'hard') {
+        await fetch(`${API_URL}/answer-card`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cardId: currentCard.id, correct: false })
+        });
+        fetchNextCard();
+    } else if (action === 'easy') {
+        await fetch(`${API_URL}/answer-card`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cardId: currentCard.id, correct: true })
+        });
+        fetchNextCard();
+    } else if (action === 'medium' || action === 'next card') {
+        fetchNextCard();
+    }
 });
 
 loadFiles();

@@ -89,5 +89,10 @@
     align-items: flex-start;
 }
 
+#flashcard-file-list label {
+  cursor: pointer;
+}
+
+
 
   

@@ -146,6 +146,10 @@ button.secondary.selected {
   color: #c62828;
 }
 
+#quiz-file-list label {
+  cursor: pointer;
+}
+
 /* Timer (optional) */
 #quiz-timer {
   margin-top: 12px;
