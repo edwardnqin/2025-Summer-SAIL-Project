@@ -131,3 +131,4 @@ perfBtns.addEventListener('click', async e => {
 });
 
 loadFiles();
+fetchNextCard();
