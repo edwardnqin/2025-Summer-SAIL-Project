@@ -357,6 +357,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // INIT
   displayUploadedFiles();
-  fetchDueCard();
   updateClock();
 });
