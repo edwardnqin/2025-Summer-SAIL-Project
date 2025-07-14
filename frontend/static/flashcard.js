@@ -25,16 +25,23 @@ async function loadFiles() {
         return;
     }
 
-    data.files.forEach(filename => {
-        const label = document.createElement('label');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = filename;
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(filename));
-        fileListDiv.appendChild(label);
-        fileListDiv.appendChild(document.createElement('br'));
-    });
+ data.files.forEach(filename => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'file-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = filename;
+    checkbox.name = 'selectedFiles';
+
+    const label = document.createElement('label');
+    label.textContent = filename;
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+    fileListDiv.appendChild(wrapper);
+});
+
 
     const btn = document.createElement('button');
     btn.textContent = 'Start Study';
