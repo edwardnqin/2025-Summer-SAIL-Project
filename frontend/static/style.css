@@ -6,6 +6,8 @@
     --color-accent:   #56ccf2;
     --color-text:     #333333;
     --color-muted:    #666666;
+    --color-light-grey: #e0e0e0;
+    --color-lighter-grey: #f8f8f8;
 
     /* Spacing */
     --space-xs: 4px;
@@ -57,7 +59,7 @@ body {
 }
 
 .status {
-    margin-top: var(--space-sm);
+    margin-top: calc(var(--space-md) + 1rem); /* Adjust margin to clear fixed nav */
     padding: var(--space-sm) var(--space-md);
     text-align: center;
     color: var(--color-muted);
@@ -77,7 +79,7 @@ body {
 .card {
     background-color: var(--color-surface);
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Updated shadow for a modern, subtle depth */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -107,11 +109,17 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 button.primary {
     background-color: var(--color-primary);
     color: #fff;
+}
+
+button.primary:hover {
+    filter: brightness(0.9);
+    transform: translateY(-1px); /* Slight lift on hover */
 }
 
 button.secondary {
@@ -120,8 +128,11 @@ button.secondary {
     border: 1px solid var(--color-primary);
 }
 
-button:hover {
-    filter: brightness(0.9);
+button.secondary:hover {
+    /* Secondary button fills with primary color on hover */
+    background-color: var(--color-primary);
+    color: white;
+    transform: translateY(-1px); /* Slight lift on hover */
 }
 
 input,
@@ -130,8 +141,8 @@ textarea {
     font: inherit;
     width: 100%;
     margin: var(--space-sm) 0;
-    padding: var(--space-sm);
-    border: 1px solid #ccc;
+    padding: 10px 12px; /* Increased padding and subtle border */
+    border: 1px solid var(--color-light-grey);
     border-radius: 4px;
     outline: none;
 }
@@ -139,8 +150,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(86, 204, 242, 0.3);
+    border-color: var(--color-primary); /* Focus state uses primary color for consistency */
+    box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.3); /* Softer shadow matching primary color */
 }
 
 /* Card Inner for flashcards */
@@ -216,9 +227,12 @@ textarea:focus {
 }
 
 #chat-input {
-    resize: none;
-    height: 150px;
+    resize: vertical; /* Allow vertical resize */
+    min-height: 100px; /* Make it smaller by default */
+    height: auto; /* Allow content to dictate height, user can resize */
     margin-top: var(--space-sm);
+    background-color: var(--color-lighter-grey); /* Added subtle background and border */
+    border: 1px solid var(--color-light-grey);
 }
 
 #chat-log {
@@ -227,6 +241,10 @@ textarea:focus {
     margin-top: var(--space-md);
     min-height: 150px;
     overflow-y: auto;
+    background-color: var(--color-lighter-grey); /* Added subtle background and border */
+    border: 1px solid var(--color-light-grey);
+    padding: var(--space-sm); /* Add padding for readability */
+    border-radius: 4px; /* Rounded corners for consistency */
 }
 
 /* Uploaded Files Section */
@@ -237,19 +255,27 @@ textarea:focus {
 }
 
 .uploaded-files ul {
-    list-style-type: disc;
-    padding-left: var(--space-md);
+    list-style-type: none; /* Removed default disc style */
+    padding-left: 0; /* Align left */
     margin-top: var(--space-xs);
 }
 
 .uploaded-files li {
-    margin: 4px 0;
+    display: flex; /* Ensure these are still here */
+    align-items: center; /* Ensure these are still here */
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 0; /* Add some vertical padding */
+    border-bottom: 1px solid var(--color-light-grey); /* Subtle separator */
+}
+
+/* Add this new rule for the last list item */
+.uploaded-files li:last-child {
+    border-bottom: none; /* No border for the last item */
 }
 
 /* === NEW: Delete button beside uploaded file names === */
 #file-list li {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
     gap: 8px;
 }
@@ -259,8 +285,14 @@ textarea:focus {
     padding: 2px 6px;
     line-height: 1;
     color: var(--color-primary);
-    border: 1px solid var(--color-primary);
+    border: 1px solid var(--color-primary); /* Add this line back */
     background: transparent;
     border-radius: 4px;
     cursor: pointer;
+    transition: all 0.2s ease; /* Add transition for hover effect */
+}
+
+.delete-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
 }
