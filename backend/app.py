@@ -37,7 +37,8 @@ def _load():
             "cards": [],
             "files": [],
             "summaries": [],
-            "quizzes": []
+            "quizzes": [],
+	    "todos": []
         }
 
     # Load existing JSON file
@@ -49,6 +50,7 @@ def _load():
     data.setdefault("files", [])
     data.setdefault("summaries", [])
     data.setdefault("quizzes", [])
+    data.setdefault("todos", [])
 
     return data
 
@@ -349,6 +351,50 @@ def delete_file():
     _save(db)
 
     return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
+
+# ─── 10) LIST TODOS ─────────────────────────────────────────────────────
+@app.get("/list-todos")
+def list_todos():
+    db = _load()
+    db.setdefault("todos", [])
+    return jsonify(todos=db["todos"])
+
+# ─── 11) ADD TODO ───────────────────────────────────────────────────────
+@app.post("/add-todo")
+def add_todo():
+    data = request.get_json(force=True)
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify(error="Missing or empty 'text'"), 400
+
+    db = _load()
+    db.setdefault("todos", [])
+
+    # Prevent duplicates
+    if text in db["todos"]:
+        return jsonify(message="Todo already exists."), 200
+
+    db["todos"].append(text)
+    _save(db)
+    return jsonify(message="Todo added.", todos=db["todos"])
+
+# ─── 12) REMOVE TODO ────────────────────────────────────────────────────
+@app.post("/remove-todo")
+def remove_todo():
+    data = request.get_json(force=True)
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify(error="Missing or empty 'text'"), 400
+
+    db = _load()
+    db.setdefault("todos", [])
+
+    if text not in db["todos"]:
+        return jsonify(error="Todo not found."), 404
+
+    db["todos"] = [t for t in db["todos"] if t != text]
+    _save(db)
+    return jsonify(message="Todo removed.", todos=db["todos"])
 
 # ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
