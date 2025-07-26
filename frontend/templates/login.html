@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Wisebud</title>
+  <link rel="stylesheet" href="../static/style.css" />
+  <link rel="stylesheet" href="../static/login.css" />
+</head>
+
+<body>
+  <main class="container">
+    <section class="card">
+      <div class="card-header">Login to Wisebud</div>
+      <div class="card-content">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <div id="login-status" class="status"></div>
+        <button class="primary" onclick="login()">Login</button>
+        <button class="secondary" onclick="register()">Create Account</button>
+      </div>
+      <div class="card-footer">
+        <p>Password must be 8–16 characters and include upper/lowercase, number, and special character.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = 'http://127.0.0.1:5001';
+
+    function showMessage(msg, isError = false) {
+      const el = document.getElementById("login-status");
+      el.textContent = msg;
+      el.className = "status " + (isError ? "error" : "success");
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        showMessage("Please fill in both fields.", true);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("wisebudUser", username);
+        showMessage("Login successful! Redirecting...");
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000);
+      } else {
+        showMessage(data.error || "Login failed", true);
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        showMessage("Please fill in both fields.", true);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showMessage("Account created. You can now log in.");
+      } else {
+        showMessage(data.error || "Registration failed", true);
+      }
+    }
+  </script>
+</body>
+</html>

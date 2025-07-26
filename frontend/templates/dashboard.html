@@ -9,6 +9,12 @@
 </head>
 
 <body>
+  <script>
+    if (!localStorage.getItem("wisebudUser")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
   <nav class="top-nav">
     <h1>Wisebud</h1>
   </nav>
