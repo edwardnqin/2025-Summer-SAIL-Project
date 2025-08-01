@@ -25,47 +25,42 @@ CORS(app)
 # ─── Simple JSON "DB" ──────────────────────────────────────────────────
 DB = "study_data.json"
 
-# Automatically delete JSON DB on every server start
-if os.path.exists(DB):
-    os.remove(DB)
-    print(f"{DB} deleted on server start.")
-
 def _load():
-    # If file doesn't exist, return a complete default structure
     if not os.path.exists(DB):
         return {
-            "cards": [],
-            "files": [],
+            "files": {},
+            "cards": {},
             "summaries": [],
             "quizzes": [],
-	    "todos": []
+            "todos": []
         }
-
-    # Load existing JSON file
     with open(DB) as f:
         data = json.load(f)
-
-    # Ensure all required sections exist
-    data.setdefault("cards", [])
-    data.setdefault("files", [])
+    data.setdefault("files", {})
+    data.setdefault("cards", {})
     data.setdefault("summaries", [])
     data.setdefault("quizzes", [])
     data.setdefault("todos", [])
-
     return data
 
 def _save(data):
     with open(DB, "w") as f:
         json.dump(data, f, indent=4)
 
+def _ensure_course_section(db, section, course):
+    if course not in db[section]:
+        db[section][course] = []
+
 # ─── 1) UPLOAD ─────────────────────────────────────────────────────────
 @app.post("/upload")
 def upload():
     uploaded_files = request.files.getlist("files")
-    if not uploaded_files:
-        return jsonify(error="No files provided"), 400
+    course = request.form.get("course")
+    if not uploaded_files or not course:
+        return jsonify(error="Missing files or course name"), 400
 
     db = _load()
+    _ensure_course_section(db, "files", course)
     added = 0
 
     for f in uploaded_files:
@@ -81,52 +76,66 @@ def upload():
         elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
             text = image_to_base64(data)
         else:
-            continue  # skip unsupported files
+            continue
 
-        db["files"].append({"name": name, "text": text})
+        db["files"][course].append({"name": name, "text": text})
         added += 1
 
     _save(db)
-    return jsonify(message=f"{added} files uploaded.", total_files=len(db["files"]))
+    return jsonify(message=f"{added} files uploaded.", total_files=len(db["files"][course]))
 
 # ─── 2) LIST FILES ─────────────────────────────────────────────────────
 @app.get("/list-files")
 def list_files():
+    course = request.args.get("course")
     db = _load()
-    file_names = [f["name"] for f in db.get("files", [])]
-    unique_file_names = sorted(set(file_names))  # optional: sorted for consistent order
-    return jsonify(files=unique_file_names)
+    if not course or course not in db["files"]:
+        return jsonify(files=[])
+    file_names = [f["name"] for f in db["files"][course]]
+    return jsonify(files=sorted(set(file_names)))
 
-# ─── 3) SUMMARIZE ──────────────────────────────────────────────────────
+# ─── 3) DELETE FILE ─────────────────────────────────────────────────────
+@app.post("/delete-file")
+def delete_file():
+    data = request.get_json(force=True)
+    course = data.get("course")
+    filename = data.get("filename")
+    if not course or not filename:
+        return jsonify(error="Missing 'course' or 'filename'"), 400
+
+    db = _load()
+    if course not in db["files"]:
+        return jsonify(message="Course not found."), 404
+    original_len = len(db["files"][course])
+    db["files"][course] = [f for f in db["files"][course] if f["name"] != filename]
+    removed_count = original_len - len(db["files"][course])
+    _save(db)
+    return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
+
+# ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
 @app.post("/summarize")
 def summarize():
     data = request.get_json(force=True)
     selected = data.get("filenames", [])
-    if not selected:
-        return jsonify(error="No files selected"), 400
+    course = data.get("course")
+    if not selected or not course:
+        return jsonify(error="Missing files or course name"), 400
 
     db = _load()
-    files = [f for f in db["files"] if f["name"] in selected]
+    _ensure_course_section(db, "files", course)
+    files = [f for f in db["files"][course] if f["name"] in selected]
     if not files:
         return jsonify(error="No matching files"), 404
 
-    # Build per‐file sections for the prompt
     prompt_parts = []
     for i, f in enumerate(files, start=1):
-        prompt_parts.append(
-            f"---\n"
-            f"DOCUMENT #{i} FILENAME: {f['name']}\n\n"
-            f"{f['text']}\n"
-        )
+        prompt_parts.append(f"---\nDOCUMENT #{i} FILENAME: {f['name']}\n\n{f['text']}\n")
 
     prompt = (
-        "You are a study assistant.  For each document below, first invent a clear, concise title based on its content, then write a brief summary.  "
-        "Format **exactly** like this:\n\n"
-        "**<Title for Document 1>**\n"
-        "Summary of Document 1...\n\n"
-        "**<Title for Document 2>**\n"
-        "Summary of Document 2...\n\n"
-        "…and so on, matching the order of the documents.\n\n"
+        "You are a study assistant. For each document below, first invent a clear, concise title based on its content, "
+        "then write a brief summary. Format **exactly** like this:\n\n"
+        "**<Title for Document 1>**\nSummary of Document 1...\n\n"
+        "**<Title for Document 2>**\nSummary of Document 2...\n\n"
         + "\n".join(prompt_parts)
     )
 
@@ -134,88 +143,30 @@ def summarize():
         model=MODEL,
         messages=[
             {"role": "system", "content": "You are a helpful study assistant."},
-            {"role": "user",   "content": prompt}
+            {"role": "user", "content": prompt}
         ],
         temperature=0.3,
     )
 
     summary = response.choices[0].message.content.strip()
-
-    # (save to JSON DB if you like…)
-
     return jsonify(summary=summary)
-
-# ─── 4) ASK ────────────────────────────────────────────────────────────
-@app.post("/ask")
-def ask():
-    data = request.get_json(force=True)
-    query = data.get("query")
-    if not query:
-        return jsonify(error="No query"), 400
-
-    # Load all study data
-    db = _load()
-
-    # Build context from files
-    files_text = "\n\n".join(f["text"] for f in db.get("files", []))
-
-    # Build context from summaries
-    summaries_text = "\n\n".join(s["summary"] for s in db.get("summaries", []))
-
-    # Build context from quizzes
-    quizzes_text = "\n\n".join(
-        "Q: " + q["question"] + "\n" +
-        "\n".join([f"{letter}: {text}" for letter, text in q.get("options", {}).items()]) + "\n" +
-        f"Correct Answer: {q.get('correctAnswer')}"
-        for quiz in db.get("quizzes", [])
-        for q in quiz.get("questions", [])
-    )
-
-    # Build context from flashcards
-    flashcards_text = "\n\n".join(
-        f"Q: {c.get('question')}\nA: {c.get('answer')}"
-        for c in db.get("cards", [])
-    )
-
-    # Combine all contexts (truncate to ~950,000 chars if needed)
-    context = "\n\n".join([files_text, summaries_text, quizzes_text, flashcards_text])[:950_000]
-
-    # Build prompt for GPT
-    prompt = (
-        "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
-        + context
-        + "\n\nQuestion: "
-        + query
-    )
-
-    # Call OpenAI
-    response = openai.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": "You are a helpful tutor."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3
-    )
-
-    answer = response.choices[0].message.content.strip()
-    return jsonify(answer=answer)
 
 # ─── 5) GENERATE FLASHCARDS ────────────────────────────────────────────
 @app.post("/generate-cards")
 def generate_cards():
     data = request.get_json(force=True)
     selected_files = data.get("filenames", [])
-    if not selected_files:
-        return jsonify(error="No files selected"), 400
+    course = data.get("course")
+    if not selected_files or not course:
+        return jsonify(error="Missing files or course name"), 400
 
     db = _load()
-    db_files = db.get("files", [])
-    files = [f for f in db_files if f["name"] in selected_files]
+    _ensure_course_section(db, "files", course)
+    _ensure_course_section(db, "cards", course)
+    files = [f for f in db["files"][course] if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
 
-    # Merge the selected file texts
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a flashcard generator for spaced repetition learning.\n"
@@ -224,7 +175,6 @@ def generate_cards():
         + merged
     )
 
-    # Send request to OpenAI
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
@@ -234,80 +184,81 @@ def generate_cards():
         temperature=0.3
     )
     raw_text = response.choices[0].message.content.strip()
-
-    # Extract JSON from response
     match = re.search(r'(\[.*\])', raw_text, re.S)
     clean = match.group(1) if match else raw_text
     cards = json.loads(clean)
 
-    # Assign an ID to each card and save
-    next_id = max([0] + [c.get("id", 0) for c in db.get("cards", [])]) + 1
+    next_id = max([0] + [c.get("id", 0) for c in db["cards"][course]]) + 1
     for c in cards:
         c.update(id=next_id)
-        db["cards"].append(c)
+        db["cards"][course].append(c)
         next_id += 1
 
     _save(db)
     return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
-# ─── 6) GET CARD ───────────────────────────────────────────────────
+# ─── 6) GET CARD ───────────────────────────────────────────────────────
 @app.get("/get-card")
 def get_card():
+    course = request.args.get("course")
+    if not course:
+        return jsonify(error="Missing course name"), 400
     db = _load()
-    cards = db.get("cards", [])
-    if not cards:
+    if course not in db["cards"] or not db["cards"][course]:
         return jsonify(message="No cards available"), 404
-    return jsonify(random.choice(cards))  # Pick a random card
+    return jsonify(random.choice(db["cards"][course]))
 
-# ─── 7) ANSWER CARD ───────────────────────────────────────────────────
+# ─── 7) ANSWER CARD ────────────────────────────────────────────────────
 @app.post("/answer-card")
 def answer_card():
     data = request.get_json(force=True)
+    course = data.get("course")
     card_id = data.get("cardId")
     correct = data.get("correct")
 
-    if card_id is None or correct is None:
-        return jsonify(error="Missing 'cardId' or 'correct'"), 400
+    if course is None or card_id is None or correct is None:
+        return jsonify(error="Missing 'course', 'cardId', or 'correct'"), 400
 
     db = _load()
-    cards = db.get("cards", [])
+    if course not in db["cards"]:
+        return jsonify(error="Course not found"), 404
+    cards = db["cards"][course]
 
-    # If correct, remove the card
     if correct:
         new_cards = [c for c in cards if c.get("id") != card_id]
         if len(new_cards) == len(cards):
             return jsonify(error="Card not found"), 404
-        db["cards"] = new_cards
+        db["cards"][course] = new_cards
         _save(db)
         return jsonify(message=f"Card {card_id} removed.")
     else:
-        # Incorrect answer, keep the card
         return jsonify(message="Card kept.")
 
-# ─── 8) GENERATE QUIZ ───────────────────────────────────────────────────
+# ─── 8) GENERATE QUIZ ──────────────────────────────────────────────────
 @app.post("/generate-quiz")
 def generate_quiz():
     data = request.get_json(force=True)
     selected_files = data.get("filenames", [])
-    if not selected_files:
-        return jsonify(error="No files selected"), 400
+    course = data.get("course")
+    if not selected_files or not course:
+        return jsonify(error="Missing files or course name"), 400
 
-    # Load the file texts
-    db_files = _load().get("files", [])
-    files = [f for f in db_files if f["name"] in selected_files]
+    db = _load()
+    _ensure_course_section(db, "files", course)
+    files = [f for f in db["files"][course] if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
 
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
-    	"You are a quiz generator for a midterm exam. Based on the following material, "
-    	"generate **exactly 10** clear multiple-choice questions that cover important concepts students should know. "
-    	"Each question must have exactly four distinct answer options labeled A, B, C, and D. "
-    	"Clearly indicate the correct answer using a 'correctAnswer' field. "
-    	"Return the result as a valid JSON array of 10 objects. "
-   	"Each object must contain a 'question', an 'options' dictionary with keys A/B/C/D, and a 'correctAnswer' key.\n\n"
-    	+ merged
-)
+        "You are a quiz generator for a midterm exam. Based on the following material, "
+        "generate **exactly 10** clear multiple-choice questions that cover important concepts students should know. "
+        "Each question must have exactly four distinct answer options labeled A, B, C, and D. "
+        "Clearly indicate the correct answer using a 'correctAnswer' field. "
+        "Return the result as a valid JSON array of 10 objects. "
+        "Each object must contain a 'question', an 'options' dictionary with keys A/B/C/D, and a 'correctAnswer' key.\n\n"
+        + merged
+    )
 
     response = openai.chat.completions.create(
         model=MODEL,
@@ -323,10 +274,6 @@ def generate_quiz():
     clean = match.group(1) if match else raw
     questions = json.loads(clean)
 
-    # RE-LOAD database for saving
-    db = _load()
-    if "quizzes" not in db:
-        db["quizzes"] = []
     db["quizzes"].append({
         "timestamp": datetime.datetime.now().isoformat(),
         "files": selected_files,
@@ -336,30 +283,13 @@ def generate_quiz():
 
     return jsonify(questions=questions)
 
-# ─── 9) DELETE FILE ─────────────────────────────────────────────────────
-@app.post("/delete-file")
-def delete_file():
-    data = request.get_json(force=True)
-    filename = data.get("filename")
-    if not filename:
-        return jsonify(error="Missing 'filename'"), 400
-
-    db = _load()
-    original_len = len(db["files"])
-    db["files"] = [f for f in db["files"] if f["name"] != filename]
-    removed_count = original_len - len(db["files"])
-    _save(db)
-
-    return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
-
-# ─── 10) LIST TODOS ─────────────────────────────────────────────────────
+# ─── 9) LIST TODOS ─────────────────────────────────────────────────────
 @app.get("/list-todos")
 def list_todos():
     db = _load()
-    db.setdefault("todos", [])
     return jsonify(todos=db["todos"])
 
-# ─── 11) ADD TODO ───────────────────────────────────────────────────────
+# ─── 10) ADD TODO ──────────────────────────────────────────────────────
 @app.post("/add-todo")
 def add_todo():
     data = request.get_json(force=True)
@@ -368,9 +298,6 @@ def add_todo():
         return jsonify(error="Missing or empty 'text'"), 400
 
     db = _load()
-    db.setdefault("todos", [])
-
-    # Prevent duplicates
     if text in db["todos"]:
         return jsonify(message="Todo already exists."), 200
 
@@ -378,7 +305,7 @@ def add_todo():
     _save(db)
     return jsonify(message="Todo added.", todos=db["todos"])
 
-# ─── 12) REMOVE TODO ────────────────────────────────────────────────────
+# ─── 11) REMOVE TODO ───────────────────────────────────────────────────
 @app.post("/remove-todo")
 def remove_todo():
     data = request.get_json(force=True)
@@ -387,8 +314,6 @@ def remove_todo():
         return jsonify(error="Missing or empty 'text'"), 400
 
     db = _load()
-    db.setdefault("todos", [])
-
     if text not in db["todos"]:
         return jsonify(error="Todo not found."), 404
 
