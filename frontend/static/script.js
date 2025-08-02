@@ -2,6 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const API_URL = 'http://127.0.0.1:5001';
   const qs = sel => document.querySelector(sel);
 
+  const course = localStorage.getItem("currentCourse") || new URLSearchParams(window.location.search).get("course");
+  if (!course) {
+    alert("Missing course name. Redirecting to Courses page.");
+    window.location.href = "course.html";
+  }
+  localStorage.setItem("currentCourse", course);  // 确保后续 fetch 都能读取
+
   const timerCircle = qs('#clock-svg circle');
   const radius = timerCircle.r.baseVal.value;
   const circumference = 2 * Math.PI * radius;
@@ -92,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fd.append('text_content', txt);
     }
 
+    fd.append('course', course);
     const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Upload failed');
@@ -100,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function displayUploadedFiles() {
     try {
-      const res = await fetch(`${API_URL}/list-files`);
+      const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`);
       const data = await res.json();
       fileList.innerHTML = '';
       data.files.forEach(name => {
@@ -144,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchDueCard() {
     setStatus('Loading next card…');
-    const res = await fetch(`${API_URL}/get-due-card`);
+    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(course)}`);
     const data = await res.json();
     if (!res.ok || data.message) {
       currentCard = null;
@@ -206,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   summarizeBtn.addEventListener('click', () => {
-    window.location.href = 'summarize.html';
+    window.location.href = `summarize.html?course=${encodeURIComponent(course)}`;
   });
 
   fileUpload.addEventListener('change', () => {
@@ -295,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await fetch(`${API_URL}/update-card-performance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cardId: currentCard.id, quality })
+      body: JSON.stringify({ course, cardId: currentCard.id, quality })
     });
     fetchDueCard();
   });
@@ -358,4 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // INIT
   displayUploadedFiles();
   updateClock();
+  const courseNameSpan = document.getElementById("current-course-name");
+  if (courseNameSpan) courseNameSpan.textContent = course;
+
 });

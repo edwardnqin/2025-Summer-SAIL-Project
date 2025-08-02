@@ -9,8 +9,15 @@
 </head>
 
 <body>
+  <!-- <script>
+    const params = new URLSearchParams(window.location.search);
+    const course = params.get("course");
+    if (!course) window.location.href = "course.html";
+    localStorage.setItem("currentCourse", course);
+  </script> -->
+
   <nav class="top-nav">
-    <h1>Wisebud</h1>
+    <h1>Wisebud -- <span id="current-course"></span></h1>
   </nav>
 
   <div id="status-message" class="status"></div>
