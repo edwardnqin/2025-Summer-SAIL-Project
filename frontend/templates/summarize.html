@@ -1,9 +1,10 @@
 <!-- summarize.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wisebud - Summary</title>
 
   <!-- Global styles -->
@@ -14,6 +15,7 @@
     .toc {
       margin-bottom: 1rem;
     }
+
     .toc label {
       display: flex;
       align-items: center;
@@ -22,6 +24,7 @@
       cursor: pointer;
       font-weight: normal;
     }
+
     .toc input[type="checkbox"] {
       width: auto;
       padding: 0;
@@ -39,7 +42,7 @@
       background-color: white;
       padding: 24px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
       white-space: pre-wrap;
     }
 
@@ -49,6 +52,7 @@
       display: block;
       margin-bottom: 4px;
     }
+
     .toc a:hover {
       text-decoration: underline;
     }
@@ -62,6 +66,7 @@
       cursor: pointer;
       margin-top: 10px;
     }
+
     .primary:hover {
       filter: brightness(0.9);
     }
@@ -72,8 +77,11 @@
     }
   </style>
 </head>
+
 <body>
-  <nav class="top-nav"><h1>Wisebud Summary</h1></nav>
+  <nav class="top-nav">
+    <h1>Wisebud Summary</h1>
+  </nav>
   <main class="container" style="grid-template-columns: 300px 1fr; align-items: start;">
     <section class="card" style="min-width: 280px;">
       <div class="card-header">Summary Table of Contents</div>
@@ -89,9 +97,16 @@
   <script>
     const API_URL = 'http://127.0.0.1:5001';
 
+    const course = new URLSearchParams(window.location.search).get("course");
+    if (!course) {
+      alert("Missing course name. Redirecting to Courses page.");
+      window.location.href = "course.html";
+    }
+    localStorage.setItem("currentCourse", course);
+
     async function listFiles() {
       try {
-        const res = await fetch(`${API_URL}/list-files`);
+        const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`);
         const data = await res.json();
 
         const tocDiv = document.getElementById("summary-toc");
@@ -134,7 +149,7 @@
       const res = await fetch(`${API_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames })
+        body: JSON.stringify({ filenames, course })
       });
       const data = await res.json();
       const contentDiv = document.getElementById("summary-content");
@@ -171,4 +186,5 @@
     listFiles();
   </script>
 </body>
+
 </html>

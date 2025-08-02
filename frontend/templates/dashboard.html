@@ -68,7 +68,9 @@
       </div>
       <div class="card-footer">
         <button class="primary" onclick="window.location.href='flashcard.html'">Study Flashcards</button>
-        <button class="secondary" onclick="window.location.href='quiz.html'">Take a Quiz</button>
+        <button class="secondary"
+          onclick="window.location.href=`quiz.html?course=${encodeURIComponent(localStorage.getItem('currentCourse'))}`">Take
+          a Quiz</button>
       </div>
     </section>
 

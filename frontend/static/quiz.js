@@ -1,4 +1,6 @@
 const API_URL = 'http://127.0.0.1:5001';
+const course = localStorage.getItem("currentCourse") || new URLSearchParams(window.location.search).get("course");
+localStorage.setItem("currentCourse", course);
 
 let questions = [];
 let currentIndex = 0;
@@ -36,7 +38,7 @@ function startTimer() {
 }
 
 async function loadFiles() {
-  const res = await fetch(`${API_URL}/list-files`);
+  const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`);
   const data = await res.json();
 
   qs('#quiz-file-status')?.remove();
@@ -71,7 +73,7 @@ async function generateQuiz() {
   const res = await fetch(`${API_URL}/generate-quiz`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filenames })
+    body: JSON.stringify({ filenames, course })
   });
   const data = await res.json();
 
