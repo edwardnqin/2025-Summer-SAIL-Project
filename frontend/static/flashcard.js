@@ -12,6 +12,11 @@ const cardBack = qs('.card-back');
 const cardFront = qs('.card-front');
 
 let currentCard = null;
+// Store the current course so we can include it in API calls
+let currentCourse = '';
+
+// add a simple mapping from button text to SM‑2 quality scores
+const ratingMap = { hard: 2, medium: 3, easy: 5 };
 
 async function loadFiles() {
     const res = await fetch(`${API_URL}/list-files`);
@@ -59,10 +64,18 @@ async function generateCards() {
     const filenames = Array.from(checked).map(cb => cb.value);
     if (!filenames.length) return alert('Please select at least one file.');
 
+    // NEW: get the course name from an input element (adjust selector as needed)
+    const courseInput = document.querySelector('#course-name');
+    currentCourse = courseInput ? courseInput.value.trim() : '';
+    if (!currentCourse) {
+        return alert('Please enter a course name.');
+    }
+
     const res = await fetch(`${API_URL}/generate-cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames })
+        // NEW: include the course in the request body
+        body: JSON.stringify({ course: currentCourse, filenames })
     });
     const json = await res.json();
     if (!res.ok) return alert(json.error || 'Generation failed.');
@@ -70,12 +83,13 @@ async function generateCards() {
     document.getElementById('flashcard-section')?.classList.remove('hidden');
     document.getElementById('file-select-section')?.classList.add('hidden');
 
-
     fetchNextCard();
 }
 
+
 async function fetchNextCard() {
-    const res = await fetch(`${API_URL}/get-card`);
+    // NEW: pass the course as a query parameter
+    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(currentCourse)}`);
     if (!res.ok) {
         questionText.textContent = 'No cards available.';
         return;
@@ -111,21 +125,20 @@ perfBtns.addEventListener('click', async e => {
 
     if (!currentCard || !currentCard.id) return;
 
-    if (action === 'hard') {
+    if (action in ratingMap) {
+        // NEW: use the rating map and include the course
+        const quality = ratingMap[action];
         await fetch(`${API_URL}/answer-card`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cardId: currentCard.id, correct: false })
+            body: JSON.stringify({
+                course: currentCourse,
+                cardId: currentCard.id,
+                quality
+            })
         });
         fetchNextCard();
-    } else if (action === 'easy') {
-        await fetch(`${API_URL}/answer-card`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cardId: currentCard.id, correct: true })
-        });
-        fetchNextCard();
-    } else if (action === 'medium' || action === 'next card') {
+    } else if (action === 'next card') {
         fetchNextCard();
     }
 });
