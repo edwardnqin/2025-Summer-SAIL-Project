@@ -12,7 +12,7 @@ function renderCourses() {
   courses.forEach(course => {
     const div = document.createElement("div");
     div.className = "course-card";
-    div.onclick = () => window.location.href = `course_dashboard.html?course=${encodeURIComponent(course)}`;
+    div.onclick = () => window.location.href = `dashboard.html?course=${encodeURIComponent(course)}`;
 
     const span = document.createElement("span");
     span.textContent = course;
