@@ -190,7 +190,13 @@ def generate_cards():
 
     next_id = max([0] + [c.get("id", 0) for c in db["cards"][course]]) + 1
     for c in cards:
-        c.update(id=next_id)
+        c.update(
+            id=next_id,
+            review_count=0,
+            interval=1,
+            ease_factor=2.5,
+            next_review=datetime.datetime.now().isoformat()
+        )
         db["cards"][course].append(c)
         next_id += 1
 
@@ -203,10 +209,25 @@ def get_card():
     course = request.args.get("course")
     if not course:
         return jsonify(error="Missing course name"), 400
+
     db = _load()
-    if course not in db["cards"] or not db["cards"][course]:
+    cards = db["cards"].get(course)
+    if not cards:
         return jsonify(message="No cards available"), 404
-    return jsonify(random.choice(db["cards"][course]))
+
+    now = datetime.datetime.now()
+    # cards that are due right now or in the past
+    due_cards = [c for c in cards if datetime.datetime.fromisoformat(c["next_review"]) <= now]
+
+    if due_cards:
+        # pick the due card with the earliest next_review
+        next_card = min(due_cards, key=lambda c: datetime.datetime.fromisoformat(c["next_review"]))
+    else:
+        # if nothing is due, pick the card with the soonest upcoming next_review
+        next_card = min(cards, key=lambda c: datetime.datetime.fromisoformat(c["next_review"]))
+
+    return jsonify(next_card)
+
 
 # ─── 7) ANSWER CARD ────────────────────────────────────────────────────
 @app.post("/answer-card")
@@ -214,25 +235,56 @@ def answer_card():
     data = request.get_json(force=True)
     course = data.get("course")
     card_id = data.get("cardId")
-    correct = data.get("correct")
 
-    if course is None or card_id is None or correct is None:
-        return jsonify(error="Missing 'course', 'cardId', or 'correct'"), 400
+    # Support both 'quality' (preferred) and 'correct' (legacy) inputs
+    quality = data.get("quality")
+    if quality is None:
+        correct = data.get("correct")
+        if correct is None:
+            return jsonify(error="Missing 'quality' or 'correct'"), 400
+        # map boolean correct/incorrect to a 0–5 quality score
+        quality = 5 if correct else 2
+
+    if course is None or card_id is None:
+        return jsonify(error="Missing 'course' or 'cardId'"), 400
 
     db = _load()
-    if course not in db["cards"]:
+    cards = db["cards"].get(course)
+    if not cards:
         return jsonify(error="Course not found"), 404
-    cards = db["cards"][course]
 
-    if correct:
-        new_cards = [c for c in cards if c.get("id") != card_id]
-        if len(new_cards) == len(cards):
-            return jsonify(error="Card not found"), 404
-        db["cards"][course] = new_cards
-        _save(db)
-        return jsonify(message=f"Card {card_id} removed.")
+    card = next((c for c in cards if c.get("id") == card_id), None)
+    if card is None:
+        return jsonify(error="Card not found"), 404
+
+    # Apply a simple SM‑2 style update
+    if quality < 3:
+        # low quality: reset the review count and interval
+        card["review_count"] = 0
+        card["interval"] = 1
     else:
-        return jsonify(message="Card kept.")
+        card["review_count"] += 1
+        # Update ease factor (SM‑2 formula with lower bound 1.3)
+        new_ef = card["ease_factor"] + (
+            0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)
+        )
+        card["ease_factor"] = max(1.3, new_ef)
+        # Set interval depending on review count
+        if card["review_count"] == 1:
+            card["interval"] = 1
+        elif card["review_count"] == 2:
+            card["interval"] = 6
+        else:
+            card["interval"] = round(card["interval"] * card["ease_factor"])
+
+    # Schedule next review date
+    card["next_review"] = (
+        datetime.datetime.now() + datetime.timedelta(days=card["interval"])
+    ).isoformat()
+
+    _save(db)
+    return jsonify(message="Card updated.")
+
 
 # ─── 8) GENERATE QUIZ ──────────────────────────────────────────────────
 @app.post("/generate-quiz")
