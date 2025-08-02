@@ -54,7 +54,7 @@
         localStorage.setItem("wisebudUser", username);
         showMessage("Login successful! Redirecting...");
         setTimeout(() => {
-          window.location.href = "dashboard.html";
+          window.location.href = "course.html";
         }, 1000);
       } else {
         showMessage(data.error || "Login failed", true);
