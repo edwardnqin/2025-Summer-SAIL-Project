@@ -34,15 +34,15 @@ async function loadFiles() {
     const wrapper = document.createElement('div');
     wrapper.className = 'file-item';
 
-const checkbox = document.createElement('input');
-checkbox.type = 'checkbox';
-checkbox.value = filename;
-checkbox.name = 'selectedFiles';
-checkbox.id = `file-${filename}`;
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = filename;
+    checkbox.name = 'selectedFiles';
+    checkbox.id = `file-${filename}`;
 
-const label = document.createElement('label');
-label.textContent = filename;
-label.setAttribute('for', checkbox.id);
+    const label = document.createElement('label');
+    label.textContent = filename;
+    label.setAttribute('for', checkbox.id);
 
 
     wrapper.appendChild(checkbox);
