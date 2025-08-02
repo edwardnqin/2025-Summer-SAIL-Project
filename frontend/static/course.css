@@ -1,0 +1,49 @@
+:root {
+  --nav-height: 64px;
+}
+
+.container {
+  margin-top: var(--nav-height);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+  padding: calc(var(--space-lg) + 1rem) var(--space-lg);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.course-list, .todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-card, .todo-item {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-card:hover {
+  background-color: #f0f4ff;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wisebud - Courses</title>
+  <link rel="stylesheet" href="../static/style.css" />
+  <link rel="stylesheet" href="../static/course.css" />
+
+</head>
+<body>
+  <!-- <script>
+    if (!localStorage.getItem("wisebudUser")) {
+      window.location.href = "login.html";
+    }
+  </script> -->
+
+  <nav class="top-nav"><h1>Wisebud Courses</h1></nav>
+
+  <main class="container">
+    <!-- Courses Section -->
+    <section class="card">
+      <div class="card-header">Your Courses</div>
+      <div class="card-content">
+        <div class="course-list" id="course-list"></div>
+        <input type="text" id="new-course" placeholder="Add new course..." />
+        <button class="primary" onclick="addCourse()">Add Course</button>
+      </div>
+    </section>
+
+    <!-- Todo List Section -->
+    <section class="card">
+      <div class="card-header">To-Do List</div>
+      <div class="card-content">
+        <div class="todo-list" id="todo-list"></div>
+        <input type="text" id="new-todo" placeholder="Add new task..." />
+        <button class="primary" onclick="addTodo()">Add Task</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="../static/course.js"></script>
+</body>
+</html>
