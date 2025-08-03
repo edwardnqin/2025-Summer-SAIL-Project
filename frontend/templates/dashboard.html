@@ -122,6 +122,18 @@
   </div>
 
   <script src="../static/script.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const course = localStorage.getItem("currentCourse");
+    const courseSpan = document.getElementById("current-course");
+    if (course && courseSpan) {
+      courseSpan.textContent = course;
+    }
+  });
+</script>
+
+
 </body>
 
 </html>
