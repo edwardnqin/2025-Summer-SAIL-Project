@@ -62,13 +62,6 @@ async function generateCards() {
     const filenames = Array.from(checked).map(cb => cb.value);
     if (!filenames.length) return alert('Please select at least one file.');
 
-    // NEW: get the course name from an input element (adjust selector as needed)
-    const courseInput = document.querySelector('#course-name');
-    currentCourse = courseInput ? courseInput.value.trim() : '';
-    if (!currentCourse) {
-        return alert('Please enter a course name.');
-    }
-
     const res = await fetch(`${API_URL}/generate-cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,26 +112,21 @@ showAnswerBtn.addEventListener('click', () => {
 
 perfBtns.addEventListener('click', async e => {
     if (!e.target.matches('#performance-btns button')) return;
-    const action = e.target.textContent.toLowerCase();
 
-    if (!currentCard || !currentCard.id) return;
+    const quality = parseInt(e.target.dataset.rating);
+    if (!currentCard || !currentCard.id || isNaN(quality)) return;
 
-    if (action in ratingMap) {
-        // NEW: use the rating map and include the course
-        const quality = ratingMap[action];
-        await fetch(`${API_URL}/answer-card`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                course: currentCourse,
-                cardId: currentCard.id,
-                quality
-            })
-        });
-        fetchNextCard();
-    } else if (action === 'next card') {
-        fetchNextCard();
-    }
+    await fetch(`${API_URL}/answer-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            course: currentCourse,
+            cardId: currentCard.id,
+            quality
+        })
+    });
+
+    fetchNextCard();
 });
 
 loadFiles();
