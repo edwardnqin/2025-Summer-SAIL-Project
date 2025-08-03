@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      if (!cachedFiles.length) { setStatus('Please choose at least one file.'); return false; }
+      if (!cachedFiles.length) { 
+	return false; 
+}
       for (const file of cachedFiles) {
         fd.append('files', file);
       }
@@ -202,11 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   generateBtn.addEventListener('click', async () => {
     try {
-      setStatus('Uploading files…');
       const success = await uploadFileOrText();
       if (success) {
         await displayUploadedFiles();
-        setStatus('Files uploaded successfully.');
       }
     } catch (err) {
       setStatus(err.message);
