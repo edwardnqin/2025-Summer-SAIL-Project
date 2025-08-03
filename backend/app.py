@@ -373,6 +373,59 @@ def remove_todo():
     _save(db)
     return jsonify(message="Todo removed.", todos=db["todos"])
 
+# ─── 12) ASK ────────────────────────────────────────────────────────────
+@app.post("/ask")
+def ask():
+    data = request.get_json(force=True)
+    query = data.get("query")
+    course = data.get("course")
+
+    if not query:
+        return jsonify(error="Missing 'query'"), 400
+    if not course:
+        return jsonify(error="Missing 'course'"), 400
+
+    db = _load()
+
+    # Course-specific context
+    files_text = "\n\n".join(f["text"] for f in db.get("files", {}).get(course, []))
+    summaries_text = "\n\n".join(s["summary"] for s in db.get("summaries", []) if s.get("course") == course)
+    quizzes_text = "\n\n".join(
+        "Q: " + q["question"] + "\n" +
+        "\n".join([f"{letter}: {text}" for letter, text in q.get("options", {}).items()]) + "\n" +
+        f"Correct Answer: {q.get('correctAnswer')}"
+        for quiz in db.get("quizzes", [])
+        if course in quiz.get("files", [])
+        for q in quiz.get("questions", [])
+    )
+    flashcards_text = "\n\n".join(
+        f"Q: {c.get('question')}\nA: {c.get('answer')}"
+        for c in db.get("cards", {}).get(course, [])
+    )
+
+    # Combine context
+    context = "\n\n".join([files_text, summaries_text, quizzes_text, flashcards_text])[:950_000]
+
+    prompt = (
+        "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
+        + context
+        + "\n\nQuestion: "
+        + query
+    )
+
+    response = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful tutor."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+
+    answer = response.choices[0].message.content.strip()
+    return jsonify(answer=answer)
+
+
 # ─── Run ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(port=5001, debug=True)

@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const res = await fetch(`${API_URL}/delete-file`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: name })
+            body: JSON.stringify({ filename: name, course })
           });
           const msg = await res.json();
           setStatus(msg.message || 'Deleted.');
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const res = await fetch(`${API_URL}/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: q })
+      body: JSON.stringify({ query: q, course })
     });
     const { answer, error } = await res.json();
     if (error) throw new Error(error);

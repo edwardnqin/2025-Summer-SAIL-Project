@@ -10,19 +10,17 @@ const perfBtns = qs('#performance-btns');
 const cardInner = qs('.card-inner');
 const cardBack = qs('.card-back');
 const cardFront = qs('.card-front');
+const currentCourse = localStorage.getItem("currentCourse") || new URLSearchParams(window.location.search).get("course");
 
 let currentCard = null;
-// Store the current course so we can include it in API calls
-let currentCourse = '';
 
 // add a simple mapping from button text to SM‑2 quality scores
 const ratingMap = { hard: 2, medium: 3, easy: 5 };
 
 async function loadFiles() {
-    const res = await fetch(`${API_URL}/list-files`);
+    const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(currentCourse)}`);
     const data = await res.json();
 
-    const fileListDiv = document.querySelector('#flashcard-file-list');
     document.querySelector('#flashcard-file-status')?.remove();
 
     if (!data.files.length) {
