@@ -354,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
-      setStatus('Timer paused');
     }
   });
 
