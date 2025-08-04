@@ -21,7 +21,7 @@ import os
 import json
 import hashlib
 
-USERS_FILE = "users.json"
+USERS_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "users.json"))
 
 def _load_users():
     if not os.path.exists(USERS_FILE):
