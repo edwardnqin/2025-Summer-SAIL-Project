@@ -38,7 +38,9 @@ function startTimer() {
 }
 
 async function loadFiles() {
-  const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`);
+  const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`, {
+    headers: { "Username": localStorage.getItem("wisebudUser") }
+  });
   const data = await res.json();
 
   qs('#quiz-file-status')?.remove();
@@ -58,12 +60,12 @@ async function loadFiles() {
     fileListDiv.appendChild(document.createElement('br'));
   });
 
-    // === NEW: model selector and instruction box ===
+  // === NEW: model selector and instruction box ===
   const modelLabel = document.createElement('label');
   modelLabel.textContent = 'Model:';
   const modelSelect = document.createElement('select');
   modelSelect.id = 'quiz-model-select';
-  ["gpt-4o","gpt-4o-mini","o4-mini","o3"].forEach(m => {
+  ["gpt-4o", "gpt-4o-mini", "o4-mini", "o3"].forEach(m => {
     const opt = document.createElement('option');
     opt.value = m;
     opt.textContent = m;
@@ -108,7 +110,10 @@ async function generateQuiz() {
   }
   const res = await fetch(`${API_URL}/generate-quiz`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Username': localStorage.getItem("wisebudUser")
+    },
     body: JSON.stringify(payload)
   });
 

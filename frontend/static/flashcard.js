@@ -18,7 +18,9 @@ let currentCard = null;
 const ratingMap = { hard: 2, medium: 3, easy: 5 };
 
 async function loadFiles() {
-    const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(currentCourse)}`);
+    const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(currentCourse)}`, {
+      headers: { "Username": localStorage.getItem("wisebudUser") }
+    });
     const data = await res.json();
 
     document.querySelector('#flashcard-file-status')?.remove();
@@ -100,7 +102,9 @@ async function generateCards() {
     }
     const res = await fetch(`${API_URL}/generate-cards`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+                   'Username': localStorage.getItem("wisebudUser")
+                 },
         body: JSON.stringify(payload)
     });
 
@@ -116,7 +120,9 @@ async function generateCards() {
 
 async function fetchNextCard() {
     // NEW: pass the course as a query parameter
-    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(currentCourse)}`);
+    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(currentCourse)}`, {
+        headers: { 'Username': localStorage.getItem("wisebudUser") }
+    });
     if (!res.ok) {
         questionText.textContent = 'No cards available.';
         return;
@@ -153,17 +159,15 @@ perfBtns.addEventListener('click', async e => {
     if (!currentCard || !currentCard.id || isNaN(quality)) return;
 
     await fetch(`${API_URL}/answer-card`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            course: currentCourse,
-            cardId: currentCard.id,
-            quality
-        })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Username": localStorage.getItem("wisebudUser")
+        },
+        body: JSON.stringify({ course: currentCourse, cardId: currentCard.id, quality })
     });
 
     fetchNextCard();
 });
 
 loadFiles();
-fetchNextCard();

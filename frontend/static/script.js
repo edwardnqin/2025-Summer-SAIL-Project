@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alert("Missing course name. Redirecting to Courses page.");
     window.location.href = "course.html";
   }
-  localStorage.setItem("currentCourse", course);  // 确保后续 fetch 都能读取
+  localStorage.setItem("currentCourse", course);
 
   const timerCircle = qs('#clock-svg circle');
   const radius = timerCircle.r.baseVal.value;
@@ -86,9 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function uploadFileOrText() {
     const fd = new FormData();
     if (sourceSelect.value === 'local') {
-      if (!cachedFiles.length) { 
-	return false; 
-}
+      if (!cachedFiles.length) {
+        return false;
+      }
       for (const file of cachedFiles) {
         fd.append('files', file);
       }
@@ -102,7 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fd.append('course', course);
-    const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd });
+    const res = await fetch(`${API_URL}/upload`, {
+      method: 'POST',
+      headers: { "Username": localStorage.getItem("wisebudUser") },
+      body: fd
+    });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Upload failed');
     return true;
@@ -110,7 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function displayUploadedFiles() {
     try {
-      const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`);
+      const res = await fetch(`${API_URL}/list-files?course=${encodeURIComponent(course)}`, {
+        headers: { "Username": localStorage.getItem("wisebudUser") }
+      });
       const data = await res.json();
       fileList.innerHTML = '';
       data.files.forEach(name => {
@@ -125,7 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!confirmDel) return;
           const res = await fetch(`${API_URL}/delete-file`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Username': localStorage.getItem("wisebudUser")
+            },
             body: JSON.stringify({ filename: name, course })
           });
           const msg = await res.json();
@@ -144,7 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function askModel(q) {
     const res = await fetch(`${API_URL}/ask`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Username': localStorage.getItem("wisebudUser")
+      },
       body: JSON.stringify({ query: q, course })
     });
     const { answer, error } = await res.json();
@@ -154,7 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchDueCard() {
     setStatus('Loading next card…');
-    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(course)}`);
+    const res = await fetch(`${API_URL}/get-card?course=${encodeURIComponent(course)}`, {
+      headers: { 'Username': localStorage.getItem("wisebudUser") }
+    });
     const data = await res.json();
     if (!res.ok || data.message) {
       currentCard = null;
@@ -302,7 +316,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const quality = e.target.dataset.rating;
     await fetch(`${API_URL}/answer-card`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Username': localStorage.getItem("wisebudUser")
+      },
       body: JSON.stringify({ course, cardId: currentCard.id, quality })
     });
     fetchDueCard();

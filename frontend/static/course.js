@@ -44,7 +44,9 @@ function addCourse() {
 }
 
 async function renderTodos() {
-  const res = await fetch(`${API_URL}/list-todos`);
+  const res = await fetch(`${API_URL}/list-todos`, {
+    headers: { "Username": localStorage.getItem("wisebudUser") }
+  });
   const { todos } = await res.json();
   const list = document.getElementById("todo-list");
   list.innerHTML = "";
@@ -62,7 +64,10 @@ async function renderTodos() {
     del.onclick = async () => {
       await fetch(`${API_URL}/remove-todo`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Username": localStorage.getItem("wisebudUser")
+        },
         body: JSON.stringify({ text })
       });
       renderTodos();
@@ -80,7 +85,10 @@ async function addTodo() {
   if (!val) return;
   await fetch(`${API_URL}/add-todo`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Username": localStorage.getItem("wisebudUser")
+    },
     body: JSON.stringify({ text: val })
   });
   input.value = "";
