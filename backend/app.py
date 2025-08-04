@@ -10,7 +10,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import openai
 
-from helpers import pdf_to_text, docx_to_text, image_to_base64
+from helpers import pdf_to_text, docx_to_text, image_to_base64, _load_users, _save_users, _hash_password
 
 # ─── OpenAI setup ──────────────────────────────────────────────────────
 load_dotenv()
@@ -26,22 +26,23 @@ CORS(app)
 # ─── Simple JSON "DB" ──────────────────────────────────────────────────
 DB = "study_data.json"
 
-def _load():
+def _load(username=None):
     if not os.path.exists(DB):
-        return {
-            "files": {},
-            "cards": {},
-            "summaries": [],
-            "quizzes": [],
-            "todos": []
-        }
-    with open(DB) as f:
-        data = json.load(f)
-    data.setdefault("files", {})
-    data.setdefault("cards", {})
-    data.setdefault("summaries", [])
-    data.setdefault("quizzes", [])
-    data.setdefault("todos", [])
+        data = {}
+    else:
+        with open(DB) as f:
+            data = json.load(f)
+    if username:
+        if username not in data:
+            data[username] = {
+                "files": {},
+                "cards": {},
+                "todos": [],
+                "summaries": [],
+                "quizzes": []
+            }
+        return data, data[username]
+
     return data
 
 def _save(data):
@@ -57,43 +58,49 @@ def _ensure_course_section(db, section, course):
 def upload():
     uploaded_files = request.files.getlist("files")
     course = request.form.get("course")
-    if not uploaded_files or not course:
-        return jsonify(error="Missing files or course name"), 400
+    username = request.headers.get("Username")
+    if not uploaded_files or not course or not username:
+        return jsonify(error="Missing files, course, or username"), 400
 
-    db = _load()
+    data, db = _load(username)
     _ensure_course_section(db, "files", course)
     added = 0
 
     for f in uploaded_files:
         name = pathlib.Path(f.filename).name
-        data = f.read()
+        data_bytes = f.read()
 
         if name.lower().endswith(".pdf"):
-            text = pdf_to_text(data)
+            text = pdf_to_text(data_bytes)
         elif name.lower().endswith((".txt", ".md")):
-            text = data.decode("utf-8", errors="ignore")
+            text = data_bytes.decode("utf-8", errors="ignore")
         elif name.lower().endswith(".docx"):
-            text = docx_to_text(data)
+            text = docx_to_text(data_bytes)
         elif name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
-            text = image_to_base64(data)
+            text = image_to_base64(data_bytes)
         else:
             continue
 
-        db["files"][course].append({"name": name, "text": text})
+        db["files"][course].append({ "name": name, "text": text })
         added += 1
 
-    _save(db)
+    _save(data)
     return jsonify(message=f"{added} files uploaded.", total_files=len(db["files"][course]))
+
 
 # ─── 2) LIST FILES ─────────────────────────────────────────────────────
 @app.get("/list-files")
 def list_files():
     course = request.args.get("course")
-    db = _load()
-    if not course or course not in db["files"]:
+    username = request.headers.get("Username")
+    if not course or not username:
+        return jsonify(error="Missing course or username"), 400
+
+    data, db = _load(username)
+    if course not in db["files"]:
         return jsonify(files=[])
     file_names = [f["name"] for f in db["files"][course]]
-    return jsonify(files=sorted(set(file_names)))
+    return jsonify(files=sorted(set(file_names))
 
 # ─── 3) DELETE FILE ─────────────────────────────────────────────────────
 @app.post("/delete-file")
@@ -119,15 +126,16 @@ def summarize():
     data = request.get_json(force=True)
     selected = data.get("filenames", [])
     course = data.get("course")
-    if not selected or not course:
-        return jsonify(error="Missing files or course name"), 400
+    username = request.headers.get("Username")
+    if not selected or not course or not username:
+        return jsonify(error="Missing files, course, or username"), 400
 
     # Read optional model override and instructions
     req_model = (data.get("model") or "").strip()
     model_to_use = req_model if req_model else MODEL
     instructions = (data.get("instructions") or "").strip()
 
-    db = _load()
+    all_data, db = _load(username)
     _ensure_course_section(db, "files", course)
     files = [f for f in db["files"][course] if f["name"] in selected]
     if not files:
@@ -159,6 +167,8 @@ def summarize():
     )
 
     summary = response.choices[0].message.content.strip()
+    db["summaries"].append({ "course": course, "summary": summary })
+    _save(all_data)
     return jsonify(summary=summary)
 
 # ─── 5) GENERATE FLASHCARDS ────────────────────────────────────────────
@@ -167,15 +177,15 @@ def generate_cards():
     data = request.get_json(force=True)
     selected_files = data.get("filenames", [])
     course = data.get("course")
-    if not selected_files or not course:
-        return jsonify(error="Missing files or course name"), 400
+    username = request.headers.get("Username")
+    if not selected_files or not course or not username:
+        return jsonify(error="Missing files, course, or username"), 400
     
-    # Read optional model override and instructions
     req_model = (data.get("model") or "").strip()
     model_to_use = req_model if req_model else MODEL
     instructions = (data.get("instructions") or "").strip()
 
-    db = _load()
+    all_data, db = _load(username)
     _ensure_course_section(db, "files", course)
     _ensure_course_section(db, "cards", course)
     files = [f for f in db["files"][course] if f["name"] in selected_files]
@@ -190,7 +200,6 @@ def generate_cards():
         + merged
     )
 
-    # Build a system prompt with optional instructions
     system_prompt = "You generate flashcards in JSON."
     if instructions:
         system_prompt += "\n" + instructions
@@ -220,30 +229,28 @@ def generate_cards():
         db["cards"][course].append(c)
         next_id += 1
 
-    _save(db)
+    _save(all_data)
     return jsonify(message=f"{len(cards)} cards generated.", cards=cards)
 
 # ─── 6) GET CARD ───────────────────────────────────────────────────────
 @app.get("/get-card")
 def get_card():
     course = request.args.get("course")
-    if not course:
-        return jsonify(error="Missing course name"), 400
+    username = request.headers.get("Username")
+    if not course or not username:
+        return jsonify(error="Missing course or username"), 400
 
-    db = _load()
+    all_data, db = _load(username)
     cards = db["cards"].get(course)
     if not cards:
         return jsonify(message="No cards available"), 404
 
     now = datetime.datetime.now()
-    # cards that are due right now or in the past
     due_cards = [c for c in cards if datetime.datetime.fromisoformat(c["next_review"]) <= now]
 
     if due_cards:
-        # pick the due card with the earliest next_review
         next_card = min(due_cards, key=lambda c: datetime.datetime.fromisoformat(c["next_review"]))
     else:
-        # if nothing is due, pick the card with the soonest upcoming next_review
         next_card = min(cards, key=lambda c: datetime.datetime.fromisoformat(c["next_review"]))
 
     return jsonify(next_card)
@@ -255,6 +262,7 @@ def answer_card():
     data = request.get_json(force=True)
     course = data.get("course")
     card_id = data.get("cardId")
+    username = request.headers.get("Username")
 
     # Support both 'quality' (preferred) and 'correct' (legacy) inputs
     quality = data.get("quality")
@@ -265,10 +273,10 @@ def answer_card():
         # map boolean correct/incorrect to a 0–5 quality score
         quality = 5 if correct else 2
 
-    if course is None or card_id is None:
-        return jsonify(error="Missing 'course' or 'cardId'"), 400
+    if course is None or card_id is None or username is None:
+        return jsonify(error="Missing 'course', 'cardId', or 'username'"), 400
 
-    db = _load()
+    all_data, db = _load(username)
     cards = db["cards"].get(course)
     if not cards:
         return jsonify(error="Course not found"), 404
@@ -302,7 +310,7 @@ def answer_card():
         datetime.datetime.now() + datetime.timedelta(days=card["interval"])
     ).isoformat()
 
-    _save(db)
+    _save(all_data)
     return jsonify(message="Card updated.")
 
 
@@ -312,20 +320,21 @@ def generate_quiz():
     data = request.get_json(force=True)
     selected_files = data.get("filenames", [])
     course = data.get("course")
-    if not selected_files or not course:
-        return jsonify(error="Missing files or course name"), 400
+    username = request.headers.get("Username")
+    if not selected_files or not course or not username:
+        return jsonify(error="Missing files, course, or username"), 400
     
     # Read optional model override and instructions
     req_model = (data.get("model") or "").strip()
     model_to_use = req_model if req_model else MODEL
     instructions = (data.get("instructions") or "").strip()
-
-    db = _load()
+    
+    all_data, db = _load(username)
     _ensure_course_section(db, "files", course)
     files = [f for f in db["files"][course] if f["name"] in selected_files]
     if not files:
         return jsonify(error="No matching files found"), 404
-
+    
     merged = "\n\n".join(f["text"] for f in files)[:950_000]
     prompt = (
         "You are a quiz generator for a midterm exam. Based on the following material, "
@@ -357,33 +366,39 @@ def generate_quiz():
 
     db["quizzes"].append({
         "timestamp": datetime.datetime.now().isoformat(),
+        "course": course,
         "files": selected_files,
         "questions": questions
     })
-    _save(db)
+    _save(all_data)
 
     return jsonify(questions=questions)
 
 # ─── 9) LIST TODOS ─────────────────────────────────────────────────────
 @app.get("/list-todos")
 def list_todos():
-    db = _load()
-    return jsonify(todos=db["todos"])
+    username = request.headers.get("Username")
+    if not username:
+        return jsonify(error="Missing username"), 401
+
+    _, db = _load(username)
+    return jsonify(todos=db.get("todos", []))
 
 # ─── 10) ADD TODO ──────────────────────────────────────────────────────
 @app.post("/add-todo")
 def add_todo():
     data = request.get_json(force=True)
     text = data.get("text", "").strip()
-    if not text:
-        return jsonify(error="Missing or empty 'text'"), 400
+    username = request.headers.get("Username")
+    if not text or not username:
+        return jsonify(error="Missing text or username"), 400
 
-    db = _load()
-    if text in db["todos"]:
+    all_data, db = _load(username)
+    if text in db.get("todos", []):
         return jsonify(message="Todo already exists."), 200
 
-    db["todos"].append(text)
-    _save(db)
+    db.setdefault("todos", []).append(text)
+    _save(all_data)
     return jsonify(message="Todo added.", todos=db["todos"])
 
 # ─── 11) REMOVE TODO ───────────────────────────────────────────────────
@@ -391,15 +406,16 @@ def add_todo():
 def remove_todo():
     data = request.get_json(force=True)
     text = data.get("text", "").strip()
-    if not text:
-        return jsonify(error="Missing or empty 'text'"), 400
+    username = request.headers.get("Username")
+    if not text or not username:
+        return jsonify(error="Missing text or username"), 400
 
-    db = _load()
-    if text not in db["todos"]:
+    all_data, db = _load(username)
+    if text not in db.get("todos", []):
         return jsonify(error="Todo not found."), 404
 
     db["todos"] = [t for t in db["todos"] if t != text]
-    _save(db)
+    _save(all_data)
     return jsonify(message="Todo removed.", todos=db["todos"])
 
 # ─── 12) ASK ────────────────────────────────────────────────────────────
@@ -408,13 +424,13 @@ def ask():
     data = request.get_json(force=True)
     query = data.get("query")
     course = data.get("course")
+    username = request.headers.get("Username")
 
-    if not query:
-        return jsonify(error="Missing 'query'"), 400
-    if not course:
-        return jsonify(error="Missing 'course'"), 400
 
-    db = _load()
+    if not query or not course or not username:
+        return jsonify(error="Missing 'query', 'course', or 'username'"), 400
+
+    all_data, db = _load(username)
 
     # Course-specific context
     files_text = "\n\n".join(f["text"] for f in db.get("files", {}).get(course, []))
@@ -424,7 +440,7 @@ def ask():
         "\n".join([f"{letter}: {text}" for letter, text in q.get("options", {}).items()]) + "\n" +
         f"Correct Answer: {q.get('correctAnswer')}"
         for quiz in db.get("quizzes", [])
-        if course in quiz.get("files", [])
+        if quiz.get("course") == course
         for q in quiz.get("questions", [])
     )
     flashcards_text = "\n\n".join(
@@ -435,7 +451,7 @@ def ask():
     # Combine context
     context = "\n\n".join([files_text, summaries_text, quizzes_text, flashcards_text])[:950_000]
 
-    prompt = (
+prompt = (
         "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
         + context
         + "\n\nQuestion: "
@@ -453,6 +469,50 @@ def ask():
 
     answer = response.choices[0].message.content.strip()
     return jsonify(answer=answer)
+
+@app.post("/register")
+def register():
+    data = request.get_json(force=True)
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+
+    if not username or not password:
+        return jsonify(error="Missing username or password"), 400
+    if not (8 <= len(password) <= 16):
+        return jsonify(error="Password must be 8–16 characters"), 400
+    if not any(c.islower() for c in password) or not any(c.isupper() for c in password):
+        return jsonify(error="Password must include both lowercase and uppercase letters"), 400
+    if not any(c.isdigit() for c in password):
+        return jsonify(error="Password must include a number"), 400
+    if not any(c in "!@#$%^&*()-_=+[]{}|;:,.<>?/`~" for c in password):
+        return jsonify(error="Password must include a special character"), 400
+
+    users = _load_users()
+    if username in users:
+        return jsonify(error="Username already exists"), 400
+
+    users[username] = { "password": _hash_password(password) }
+    _save_users(users)
+
+    return jsonify(message="User registered successfully")
+
+
+@app.post("/login")
+def login():
+    data = request.get_json(force=True)
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+
+    if not username or not password:
+        return jsonify(error="Missing username or password"), 400
+
+    users = _load_users()
+    hashed = _hash_password(password)
+
+    if username not in users or users[username]["password"] != hashed:
+        return jsonify(error="Invalid username or password"), 401
+
+    return jsonify(message="Login successful")
 
 
 # ─── Run ───────────────────────────────────────────────────────────────

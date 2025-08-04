@@ -28,25 +28,25 @@ async function loadFiles() {
         return;
     }
 
- data.files.forEach(filename => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'file-item';
+    data.files.forEach(filename => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'file-item';
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = filename;
-    checkbox.name = 'selectedFiles';
-    checkbox.id = `file-${filename}`;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = filename;
+        checkbox.name = 'selectedFiles';
+        checkbox.id = `file-${filename}`;
 
-    const label = document.createElement('label');
-    label.textContent = filename;
-    label.setAttribute('for', checkbox.id);
+        const label = document.createElement('label');
+        label.textContent = filename;
+        label.setAttribute('for', checkbox.id);
 
 
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(label);
-    fileListDiv.appendChild(wrapper);
-});
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        fileListDiv.appendChild(wrapper);
+    });
 
 
     // === NEW: model selector and instruction box ===
@@ -54,7 +54,7 @@ async function loadFiles() {
     modelLabel.textContent = 'Model:';
     const modelSelect = document.createElement('select');
     modelSelect.id = 'flashcard-model-select';
-    ["gpt-4o","gpt-4o-mini","o4-mini","o3"].forEach(m => {
+    ["gpt-4o", "gpt-4o-mini", "o4-mini", "o3"].forEach(m => {
         const opt = document.createElement('option');
         opt.value = m;
         opt.textContent = m;
