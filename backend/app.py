@@ -100,7 +100,7 @@ def list_files():
     if course not in db["files"]:
         return jsonify(files=[])
     file_names = [f["name"] for f in db["files"][course]]
-    return jsonify(files=sorted(set(file_names))
+    return jsonify(files=sorted(set(file_names)))
 
 # ─── 3) DELETE FILE ─────────────────────────────────────────────────────
 @app.post("/delete-file")
@@ -451,12 +451,12 @@ def ask():
     # Combine context
     context = "\n\n".join([files_text, summaries_text, quizzes_text, flashcards_text])[:950_000]
 
-prompt = (
-        "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
-        + context
-        + "\n\nQuestion: "
-        + query
-    )
+    prompt = (
+            "You are a helpful tutor. Use the study material below to answer the student's question.\n\n"
+            + context
+            + "\n\nQuestion: "
+            + query
+        )
 
     response = openai.chat.completions.create(
         model=MODEL,
