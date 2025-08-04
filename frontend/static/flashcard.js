@@ -49,6 +49,32 @@ async function loadFiles() {
 });
 
 
+    // === NEW: model selector and instruction box ===
+    const modelLabel = document.createElement('label');
+    modelLabel.textContent = 'Model:';
+    const modelSelect = document.createElement('select');
+    modelSelect.id = 'flashcard-model-select';
+    ["gpt-4o","gpt-4o-mini","o4-mini","o3"].forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        modelSelect.appendChild(opt);
+    });
+    modelLabel.appendChild(modelSelect);
+    fileListDiv.appendChild(modelLabel);
+    fileListDiv.appendChild(document.createElement('br'));
+
+    const instrLabel = document.createElement('label');
+    instrLabel.textContent = 'Instructions:';
+    const instrTextarea = document.createElement('textarea');
+    instrTextarea.id = 'flashcard-instructions';
+    instrTextarea.rows = 3;
+    instrTextarea.placeholder = 'Optional extra instructions...';
+    instrLabel.appendChild(instrTextarea);
+    fileListDiv.appendChild(instrLabel);
+    fileListDiv.appendChild(document.createElement('br'));
+
+    // Start Study button stays at the end
     const btn = document.createElement('button');
     btn.textContent = 'Start Study';
     btn.className = 'primary';
@@ -62,12 +88,22 @@ async function generateCards() {
     const filenames = Array.from(checked).map(cb => cb.value);
     if (!filenames.length) return alert('Please select at least one file.');
 
+    // === NEW: gather model and instructions ===
+    const modelEl = document.getElementById('flashcard-model-select');
+    const instrEl = document.getElementById('flashcard-instructions');
+    const payload = { course: currentCourse, filenames };
+    if (modelEl && modelEl.value) {
+        payload.model = modelEl.value;
+    }
+    if (instrEl && instrEl.value.trim()) {
+        payload.instructions = instrEl.value.trim();
+    }
     const res = await fetch(`${API_URL}/generate-cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // NEW: include the course in the request body
-        body: JSON.stringify({ course: currentCourse, filenames })
+        body: JSON.stringify(payload)
     });
+
     const json = await res.json();
     if (!res.ok) return alert(json.error || 'Generation failed.');
 

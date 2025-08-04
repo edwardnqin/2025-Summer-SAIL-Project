@@ -15,7 +15,8 @@ from helpers import pdf_to_text, docx_to_text, image_to_base64
 # ─── OpenAI setup ──────────────────────────────────────────────────────
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-MODEL = "gpt-4o"
+# Use "gpt-4o" as the default model but allow override via env variable
+MODEL = os.getenv("DEFAULT_OPENAI_MODEL", "gpt-4o")
 
 # ─── Flask app ─────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -121,6 +122,11 @@ def summarize():
     if not selected or not course:
         return jsonify(error="Missing files or course name"), 400
 
+    # Read optional model override and instructions
+    req_model = (data.get("model") or "").strip()
+    model_to_use = req_model if req_model else MODEL
+    instructions = (data.get("instructions") or "").strip()
+
     db = _load()
     _ensure_course_section(db, "files", course)
     files = [f for f in db["files"][course] if f["name"] in selected]
@@ -139,10 +145,14 @@ def summarize():
         + "\n".join(prompt_parts)
     )
 
+    # Build a system prompt, appending any user-provided instructions
+    system_prompt = "You are a helpful study assistant."
+    if instructions:
+        system_prompt += "\n" + instructions
     response = openai.chat.completions.create(
-        model=MODEL,
+        model=model_to_use,
         messages=[
-            {"role": "system", "content": "You are a helpful study assistant."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
         temperature=0.3,
@@ -159,6 +169,11 @@ def generate_cards():
     course = data.get("course")
     if not selected_files or not course:
         return jsonify(error="Missing files or course name"), 400
+    
+    # Read optional model override and instructions
+    req_model = (data.get("model") or "").strip()
+    model_to_use = req_model if req_model else MODEL
+    instructions = (data.get("instructions") or "").strip()
 
     db = _load()
     _ensure_course_section(db, "files", course)
@@ -175,14 +190,19 @@ def generate_cards():
         + merged
     )
 
+    # Build a system prompt with optional instructions
+    system_prompt = "You generate flashcards in JSON."
+    if instructions:
+        system_prompt += "\n" + instructions
     response = openai.chat.completions.create(
-        model=MODEL,
+        model=model_to_use,
         messages=[
-            {"role": "system", "content": "You generate flashcards in JSON."},
+            {"role": "system", "content": system_prompt},
             {"role": "user",   "content": prompt}
         ],
         temperature=0.3
     )
+
     raw_text = response.choices[0].message.content.strip()
     match = re.search(r'(\[.*\])', raw_text, re.S)
     clean = match.group(1) if match else raw_text
@@ -294,6 +314,11 @@ def generate_quiz():
     course = data.get("course")
     if not selected_files or not course:
         return jsonify(error="Missing files or course name"), 400
+    
+    # Read optional model override and instructions
+    req_model = (data.get("model") or "").strip()
+    model_to_use = req_model if req_model else MODEL
+    instructions = (data.get("instructions") or "").strip()
 
     db = _load()
     _ensure_course_section(db, "files", course)
@@ -312,10 +337,14 @@ def generate_quiz():
         + merged
     )
 
+    # Build system prompt with optional instructions
+    system_prompt = "You generate multiple-choice quizzes in JSON."
+    if instructions:
+        system_prompt += "\n" + instructions
     response = openai.chat.completions.create(
-        model=MODEL,
+        model=model_to_use,
         messages=[
-            {"role": "system", "content": "You generate multiple-choice quizzes in JSON."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
         temperature=0.3

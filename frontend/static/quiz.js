@@ -58,6 +58,32 @@ async function loadFiles() {
     fileListDiv.appendChild(document.createElement('br'));
   });
 
+    // === NEW: model selector and instruction box ===
+  const modelLabel = document.createElement('label');
+  modelLabel.textContent = 'Model:';
+  const modelSelect = document.createElement('select');
+  modelSelect.id = 'quiz-model-select';
+  ["gpt-4o","gpt-4o-mini","o4-mini","o3"].forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    modelSelect.appendChild(opt);
+  });
+  modelLabel.appendChild(modelSelect);
+  fileListDiv.appendChild(modelLabel);
+  fileListDiv.appendChild(document.createElement('br'));
+
+  const instrLabel = document.createElement('label');
+  instrLabel.textContent = 'Instructions:';
+  const instrTextarea = document.createElement('textarea');
+  instrTextarea.id = 'quiz-instructions';
+  instrTextarea.rows = 3;
+  instrTextarea.placeholder = 'Optional extra instructions...';
+  instrLabel.appendChild(instrTextarea);
+  fileListDiv.appendChild(instrLabel);
+  fileListDiv.appendChild(document.createElement('br'));
+
+  // Start Quiz button goes at the end
   const btn = document.createElement('button');
   btn.textContent = 'Start Quiz';
   btn.className = 'primary';
@@ -70,11 +96,22 @@ async function generateQuiz() {
   const filenames = Array.from(checked).map(cb => cb.value);
   if (!filenames.length) return alert('Please select at least one file.');
 
+  // === NEW: gather model and instructions ===
+  const modelEl = document.getElementById('quiz-model-select');
+  const instrEl = document.getElementById('quiz-instructions');
+  const payload = { filenames, course };
+  if (modelEl && modelEl.value) {
+    payload.model = modelEl.value;
+  }
+  if (instrEl && instrEl.value.trim()) {
+    payload.instructions = instrEl.value.trim();
+  }
   const res = await fetch(`${API_URL}/generate-quiz`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filenames, course })
+    body: JSON.stringify(payload)
   });
+
   const data = await res.json();
 
   questions = data.questions.slice(0, 10);
