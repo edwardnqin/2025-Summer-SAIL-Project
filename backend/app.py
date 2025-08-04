@@ -253,7 +253,9 @@ def get_card():
     else:
         next_card = min(cards, key=lambda c: datetime.datetime.fromisoformat(c["next_review"]))
 
+    next_card.setdefault("type", "basic")
     return jsonify(next_card)
+
 
 
 # ─── 7) ANSWER CARD ────────────────────────────────────────────────────

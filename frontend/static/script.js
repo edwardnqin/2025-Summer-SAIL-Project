@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
   perfBtns?.addEventListener('click', async e => {
     if (!e.target.matches('#performance-btns button')) return;
     const quality = e.target.dataset.rating;
-    await fetch(`${API_URL}/update-card-performance`, {
+    await fetch(`${API_URL}/answer-card`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ course, cardId: currentCard.id, quality })
