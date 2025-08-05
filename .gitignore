@@ -22,3 +22,6 @@ backend/study_data.json
 
 # macOS system file
 .DS_Store
+
+# Usernames and password
+users.json
