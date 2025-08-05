@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,15 +8,24 @@
   <link rel="stylesheet" href="../static/style.css" />
   <link rel="stylesheet" href="../static/quiz.css" />
 </head>
+
 <body>
-  <nav class="top-nav"><h1>Wisebud Quiz</h1></nav>
+  <script>
+    if (!localStorage.getItem("wisebudUser")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <nav class="top-nav">
+    <h1>Wisebud Quiz</h1>
+  </nav>
 
   <main class="quiz-container">
     <!-- File selection area -->
     <section class="card quiz-files" id="file-select-section">
       <div class="card-header">Select Files for Quiz</div>
-        <div class="card-content" id="quiz-file-list">
-            <div id="quiz-file-status"> Loading files...</div>
+      <div class="card-content" id="quiz-file-list">
+        <div id="quiz-file-status"> Loading files...</div>
       </div>
     </section>
 
@@ -41,4 +51,5 @@
 
   <script src="../static/quiz.js"></script>
 </body>
+
 </html>

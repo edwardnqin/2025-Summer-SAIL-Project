@@ -10,6 +10,9 @@
 
 <body>
   <script>
+    if (!localStorage.getItem("wisebudUser")) {
+      window.location.href = "login.html";
+    }
     const params = new URLSearchParams(window.location.search);
     const course = params.get("course");
     if (!course) window.location.href = "course.html";
