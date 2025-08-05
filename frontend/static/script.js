@@ -354,7 +354,43 @@ document.addEventListener('DOMContentLoaded', () => {
     timerModal.classList.add('hidden');
   });
 
-  startTimerBtn?.addEventListener('click', () => {
+  function startTimerPersistent(durationInSec) {
+    const startTime = Date.now();
+    localStorage.setItem('wisebudTimerStart', startTime.toString());
+    localStorage.setItem('wisebudTimerDuration', durationInSec.toString());
+    localStorage.setItem('wisebudTimerPaused', 'false');
+  }
+  function resumeTimerFromStorage() {
+    const start = parseInt(localStorage.getItem('wisebudTimerStart'));
+    const duration = parseInt(localStorage.getItem('wisebudTimerDuration'));
+    const paused = localStorage.getItem('wisebudTimerPaused') === 'true';
+
+    if (!start || !duration || paused) return;
+
+    const now = Date.now();
+    const elapsedSec = Math.floor((now - start) / 1000);
+    const remaining = duration - elapsedSec;
+
+    if (remaining <= 0) {
+      clearTimerStorage();
+      timeLeft = 0;
+      updateClock();
+      return;
+    }
+
+    timeLeft = remaining;
+    initialTime = duration;
+    updateClock();
+    startTimer();
+  }
+
+  function clearTimerStorage() {
+    localStorage.removeItem('wisebudTimerStart');
+    localStorage.removeItem('wisebudTimerDuration');
+    localStorage.removeItem('wisebudTimerPaused');
+  }
+
+  function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       if (timeLeft > 0) {
@@ -362,15 +398,22 @@ document.addEventListener('DOMContentLoaded', () => {
         updateClock();
       } else {
         clearInterval(timerInterval);
+        clearTimerStorage();
         playAlarm();
       }
     }, 1000);
+  }
+
+  startTimerBtn?.addEventListener('click', () => {
+    startTimerPersistent(timeLeft);
+    startTimer();
   });
 
   pauseTimerBtn?.addEventListener('click', () => {
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
+      localStorage.setItem('wisebudTimerPaused', 'true');
     }
   });
 
@@ -382,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // INIT
   displayUploadedFiles();
   updateClock();
+  resumeTimerFromStorage();
   const courseNameSpan = document.getElementById("current-course-name");
   if (courseNameSpan) courseNameSpan.textContent = course;
 
