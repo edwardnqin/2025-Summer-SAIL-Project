@@ -108,16 +108,19 @@ def delete_file():
     data = request.get_json(force=True)
     course = data.get("course")
     filename = data.get("filename")
-    if not course or not filename:
-        return jsonify(error="Missing 'course' or 'filename'"), 400
+    username = request.headers.get("Username")
 
-    db = _load()
+    if not course or not filename or not username:
+        return jsonify(error="Missing 'course', 'filename', or 'username'"), 400
+
+    all_data, db = _load(username)
     if course not in db["files"]:
         return jsonify(message="Course not found."), 404
     original_len = len(db["files"][course])
     db["files"][course] = [f for f in db["files"][course] if f["name"] != filename]
     removed_count = original_len - len(db["files"][course])
-    _save(db)
+
+    _save(all_data)
     return jsonify(message=f"Removed {removed_count} entries with name '{filename}'.")
 
 # ─── 4) SUMMARIZE ──────────────────────────────────────────────────────
