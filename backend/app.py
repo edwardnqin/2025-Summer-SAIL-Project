@@ -212,7 +212,7 @@ def generate_cards():
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": prompt}
         ],
-        temperature=0.3
+        temperature=1,
     )
 
     raw_text = response.choices[0].message.content.strip()
@@ -361,7 +361,7 @@ def generate_quiz():
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.3
+        temperature=1
     )
 
     raw = response.choices[0].message.content.strip()
