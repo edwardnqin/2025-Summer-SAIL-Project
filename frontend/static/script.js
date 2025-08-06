@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let timerInterval = null;
   let timeLeft = 25 * 60;
   let initialTime = timeLeft;
+  let alarmAudio = null;
 
   const setStatus = msg => statusMsg.textContent = msg;
 
@@ -328,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resumeBtn?.addEventListener('click', () => {
     breakReminder.classList.add('hidden');
     studyArea.classList.remove('hidden');
+    stopAlarm();
   });
 
   setTimerBtn?.addEventListener('click', () => {
@@ -418,9 +420,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function playAlarm() {
-    const audio = new Audio('../static/alarm.mp3');
-    audio.play();
+    if (!alarmAudio) {
+      alarmAudio = new Audio('../static/alarm.mp3');
+      alarmAudio.loop = true;
+    }
+    alarmAudio.play();
   }
+
+  function stopAlarm() {
+    if (alarmAudio) {
+      alarmAudio.pause();
+      alarmAudio.currentTime = 0;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      stopAlarm();
+    }
+  });
 
   // INIT
   displayUploadedFiles();
