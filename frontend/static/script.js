@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function playAlarm() {
-    const audio = new Audio('alarm.mp3');
+    const audio = new Audio('../static/alarm.mp3');
     audio.play();
   }
 
