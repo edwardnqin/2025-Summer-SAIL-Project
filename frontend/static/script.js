@@ -402,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerInterval);
         clearTimerStorage();
         playAlarm();
+        breakReminder.classList.remove('hidden');
       }
     }, 1000);
   }
@@ -436,9 +437,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      console.log("ESC pressed – exiting break reminder");
+      breakReminder.classList.add('hidden');
+      studyArea?.classList.remove('hidden');
       stopAlarm();
     }
   });
+
 
   // INIT
   displayUploadedFiles();
