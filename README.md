@@ -2,7 +2,7 @@
 
 Wisebud is a smart AI-powered study assistant that helps students learn more efficiently by generating summaries, flashcards, quizzes, and answering questions based on uploaded notes. Designed for independent learners and optimized with spaced repetition, Wisebud streamlines your study workflow across multiple courses and users.
 
-GitHub repo: https://github.com/edwardnqin/2025-Summer-SAIL-Project.git
+GitHub repo: https://github.com/ethanchang235/spaced-rep-study-assistant.git
 
 ---
 
