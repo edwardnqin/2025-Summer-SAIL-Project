@@ -57,8 +57,8 @@ Follow these steps to clone, set up, and run Wisebud locally.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/edwardnqin/2025-Summer-SAIL-Project.git
-cd 2025-Summer-SAIL-Project
+git clone https://github.com/ethanchang235/spaced-rep-study-assistant.git
+cd spaced-rep-study-assistant
 
 # Windows
 python -m venv venv
