@@ -15,8 +15,8 @@ from helpers import pdf_to_text, docx_to_text, image_to_base64, _load_users, _sa
 # ─── OpenAI setup ──────────────────────────────────────────────────────
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-# Use "gpt-4o" as the default model but allow override via env variable
-MODEL = os.getenv("DEFAULT_OPENAI_MODEL", "gpt-4o")
+# Use "gpt-5-mini" as the default model but allow override via env variable
+MODEL = os.getenv("DEFAULT_OPENAI_MODEL", "gpt-5-mini")
 
 # ─── Flask app ─────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -469,7 +469,7 @@ def ask():
             {"role": "system", "content": "You are a helpful tutor."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.3
+        temperature=1
     )
 
     answer = response.choices[0].message.content.strip()

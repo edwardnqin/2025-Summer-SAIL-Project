@@ -65,7 +65,7 @@ async function loadFiles() {
   modelLabel.textContent = 'Model:';
   const modelSelect = document.createElement('select');
   modelSelect.id = 'quiz-model-select';
-  ["gpt-4o", "gpt-4o-mini", "o4-mini", "o3"].forEach(m => {
+  ["gpt-5", "gpt-5-mini", "gpt-5-nano"].forEach(m => {
     const opt = document.createElement('option');
     opt.value = m;
     opt.textContent = m;
