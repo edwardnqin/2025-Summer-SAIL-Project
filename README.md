@@ -2,7 +2,7 @@
 
 Wisebud is a smart AI-powered study assistant that helps students learn more efficiently by generating summaries, flashcards, quizzes, and answering questions based on uploaded notes. Designed for independent learners and optimized with spaced repetition, Wisebud streamlines your study workflow across multiple courses and users.
 
-GitHub repo: https://github.com/ethanchang235/spaced-rep-study-assistant.git
+GitHub repo: https://github.com/edwardnqin/2025-Summer-SAIL-Project.git
 
 ---
 
@@ -57,8 +57,8 @@ Follow these steps to clone, set up, and run Wisebud locally.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ethanchang235/spaced-rep-study-assistant.git
-cd spaced-rep-study-assistant
+git clone https://github.com/edwardnqin/2025-Summer-SAIL-Project.git
+cd Summer-SAIL-Project
 
 # Windows
 python -m venv venv
@@ -72,4 +72,4 @@ pip install -r requirements.txt
 
 echo OPENAI_API_KEY="sk-your-api-key" > .env
 
-python app.py
+python backend/app.py
