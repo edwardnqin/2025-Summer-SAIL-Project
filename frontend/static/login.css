@@ -1,6 +1,6 @@
 main.container {
-  max-width: 400px;
-  margin-top: 100px;
+  max-width: 420px;
+  margin-top: 120px;
 }
 
 input[type="text"],
@@ -13,13 +13,9 @@ input[type="password"] {
   color: var(--color-muted);
 }
 
-.status.error {
-  color: red;
-}
+.status.error { color: #dc2626; }
 
-.status.success {
-  color: green;
-}
+.status.success { color: #16a34a; }
 
 .card-footer p {
   margin: 8px 0 0;
@@ -31,3 +27,6 @@ input[type="password"] {
   color: var(--color-primary);
   cursor: pointer;
 }
+
+/* Improve card spacing */
+.card .card-content input { margin-top: 10px; }

@@ -6,8 +6,8 @@
   }
   
   #flashcard-area #card-container {
-    width: 320px;
-    height: 220px;
+    width: 360px;
+    height: 240px;
     perspective: 800px;
     margin-bottom: 1rem;
   }
@@ -20,9 +20,7 @@
     transform-style: preserve-3d;
   }
   
-  #flashcard-area .card-inner.flipped {
-    transform: rotateY(180deg);
-  }
+  #flashcard-area .card-inner.flipped { transform: rotateY(180deg); }
   
   #flashcard-area .card-front,
   #flashcard-area .card-back {
@@ -31,9 +29,9 @@
     height: 100%;
     backface-visibility: hidden;
     background: #fff;
-    border: 2px solid #ddd;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid rgba(2,6,23,0.06);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -45,15 +43,7 @@
     transform: rotateY(180deg);
   }
   
-  #flashcard-area #show-answer-btn {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: var(--color-primary);
-    color: white;
-    cursor: pointer;
-  }
+  #flashcard-area #show-answer-btn { margin-top: 0.5rem; }
   
   #flashcard-area #performance-btns {
     display: flex;
@@ -64,9 +54,9 @@
   #flashcard-area #performance-btns button {
     flex: 1;
     padding: 0.5rem 0;
-    border: 2px solid var(--color-primary);
-    border-radius: 0.5rem;
-    background: #f0f8ff;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: rgba(75,108,183,0.08);
     cursor: pointer;
   }
   

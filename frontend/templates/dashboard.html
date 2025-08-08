@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wisebud - Study Assistant</title>
   <link rel="stylesheet" href="../static/style.css" />
+  <style>
+    /* Dashboard-only layout to keep all 4 cards on the same row on wide screens */
+    .container { grid-template-columns: repeat(4, minmax(260px, 1fr)); max-width: 1600px; }
+    @media (max-width: 1400px) {
+      .container { grid-template-columns: repeat(3, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 1024px) {
+      .container { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .container { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 
 <body>

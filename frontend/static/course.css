@@ -7,7 +7,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-lg);
-  padding: calc(var(--space-lg) + 1rem) var(--space-lg);
+  padding: calc(var(--space-xl) + 1rem) var(--space-xl);
   box-sizing: border-box;
   width: 100%;
 }
@@ -21,17 +21,21 @@
 
 .course-card,
 .todo-item {
-  background: white;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  border: 1px solid rgba(2,6,23,0.06);
+  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .course-card:hover {
-  background-color: #f0f4ff;
+  background-color: #eef2ff;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
   cursor: pointer;
 }
 
@@ -40,12 +44,23 @@
   color: var(--color-primary);
   border: 1px solid var(--color-primary);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: rgba(75,108,183,0.08);
+}
+
+/* Inputs in cards */
+.card .card-content input[type="text"] {
+  margin-top: 10px;
 }
 
 @media (max-width: 800px) {
   .container {
     grid-template-columns: 1fr;
+    padding: calc(var(--space-xl) + 1rem) var(--space-md);
   }
 }

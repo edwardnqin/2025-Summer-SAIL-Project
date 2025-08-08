@@ -20,6 +20,37 @@
     --font-base: 'Inter', sans-serif;
     --font-size: 16px;
     --line-height: 1.5;
+
+    /* Extended palette */
+    --primary-50: #eef2ff;
+    --primary-100: #e0e7ff;
+    --primary-200: #c7d2fe;
+    --primary-300: #a5b4fc;
+    --primary-400: #818cf8;
+    --primary-500: #4b6cb7; /* matches current --color-primary base */
+    --primary-600: #3a54a4;
+    --primary-700: #2f4589;
+    --primary-800: #26376f;
+    --primary-900: #1d2a57;
+
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1f2937;
+    --slate-900: #0f172a;
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
+    --shadow-md: 0 4px 12px rgba(2, 6, 23, 0.08);
+    --shadow-lg: 0 12px 24px rgba(2, 6, 23, 0.12);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
 }
 
 *,
@@ -45,19 +76,38 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: var(--color-primary);
+    background: linear-gradient(90deg, var(--primary-700), var(--primary-500));
     color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: var(--space-sm) var(--space-md);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 14px 24px;
+    box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
     z-index: 10;
 }
 
 .top-nav h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Badge styling for current course in the header */
+.top-nav #current-course {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, var(--primary-50), #ffffff);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-200);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .status {
@@ -82,17 +132,25 @@ body {
 .card {
     background-color: var(--color-surface);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    /* Updated shadow for a modern, subtle depth */
+    box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid var(--slate-200);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 .card-header {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    padding: var(--space-md) var(--space-md) 0;
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+    background: linear-gradient(180deg, var(--primary-50), transparent);
+    border-bottom: 1px solid var(--slate-200);
 }
 
 .card-content {
@@ -111,35 +169,16 @@ button {
     font: inherit;
     padding: var(--space-sm) var(--space-md);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-button.primary {
-    background-color: var(--color-primary);
-    color: #fff;
-}
+button.primary { background: linear-gradient(180deg, var(--color-primary), var(--primary-600)); color: #fff; box-shadow: var(--shadow-sm) inset, var(--shadow-sm); }
+button.primary:hover { filter: brightness(0.98); transform: translateY(-1px); }
 
-button.primary:hover {
-    filter: brightness(0.9);
-    transform: translateY(-1px);
-    /* Slight lift on hover */
-}
-
-button.secondary {
-    background-color: transparent;
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-}
-
-button.secondary:hover {
-    /* Secondary button fills with primary color on hover */
-    background-color: var(--color-primary);
-    color: white;
-    transform: translateY(-1px);
-    /* Slight lift on hover */
-}
+button.secondary { background-color: transparent; color: var(--color-primary); border: 1px solid var(--primary-300); }
+button.secondary:hover { background-color: var(--primary-50); color: var(--primary-700); transform: translateY(-1px); }
 
 input,
 select,
@@ -158,9 +197,7 @@ input:focus,
 select:focus,
 textarea:focus {
     border-color: var(--color-primary);
-    /* Focus state uses primary color for consistency */
-    box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.3);
-    /* Softer shadow matching primary color */
+    box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.25);
 }
 
 /* Card Inner for flashcards */
@@ -250,6 +287,7 @@ textarea:focus {
     background-color: var(--color-lighter-grey);
     /* Added subtle background and border */
     border: 1px solid var(--color-light-grey);
+    border-radius: var(--radius-sm);
 }
 
 #chat-log {
@@ -263,7 +301,7 @@ textarea:focus {
     border: 1px solid var(--color-light-grey);
     padding: var(--space-sm);
     /* Add padding for readability */
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     /* Rounded corners for consistency */
 }
 
@@ -311,17 +349,17 @@ textarea:focus {
     font-size: 0.9rem;
     padding: 2px 6px;
     line-height: 1;
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-300);
     /* Add this line back */
     background: transparent;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
     /* Add transition for hover effect */
 }
 
 .delete-btn:hover {
-    background-color: var(--color-primary);
-    color: white;
+    background-color: var(--primary-50);
+    color: var(--primary-800);
 }
