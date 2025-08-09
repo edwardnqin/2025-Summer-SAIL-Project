@@ -30,7 +30,7 @@ GitHub repo: https://github.com/edwardnqin/2025-Summer-SAIL-Project.git
 
 ### AI Control
 
-- 🔄 **Model Selector:** Choose between `gpt-4o`, `gpt-4.1`, or `gpt-3.5-turbo`.
+- 🔄 **Model Selector:** Choose between `gpt-5`, `gpt-5-mini`, or `gpt-5-nano`.
 - ✏️ **Custom Prompts:** Add your own instructions for summarizing, quizzes, and cards.
 
 ### Productivity Add-ons
